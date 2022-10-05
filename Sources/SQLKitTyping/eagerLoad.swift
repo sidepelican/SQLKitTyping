@@ -1,7 +1,64 @@
 import SQLKit
 
 extension SQLDatabase {
-    func eagerLoadAllColumns<
+    @inlinable
+    public func eagerLoadAllColumns<
+        Row: IDModel,
+        RelationSchema: SchemaProtocol,
+        TargetSchema: IDSchemaProtocol,
+        FromID: IDType,
+        ToID: IDType,
+        Decoding: Decodable
+    >(
+        into row: inout Row?,
+        keyPath: WritableKeyPath<Row, [Decoding]>,
+        targetTable: TargetSchema,
+        relation: PivotJoinRelation<RelationSchema, FromID, ToID>
+    ) async throws
+    where Row.Schema.ID == FromID, TargetSchema.ID == ToID
+    {
+        try await select()
+            .column(targetTable.all)
+            .from(targetTable)
+            .eagerLoad(into: &row, keyPath: keyPath, toIDColumn: targetTable.id, relation: relation)
+    }
+
+    @inlinable
+    public func eagerLoadAllColumns<
+        Row: IDModel,
+        RelationSchema: RelationSchemaProtocol,
+        TargetSchema: IDSchemaProtocol,
+        Decoding: Decodable
+    >(
+        into row: inout Row?,
+        keyPath: WritableKeyPath<Row, [Decoding]>,
+        targetTable: TargetSchema,
+        relationTable: RelationSchema
+    ) async throws
+    where Row.Schema.ID == RelationSchema.ID1, TargetSchema.ID == RelationSchema.ID2
+    {
+        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation)
+    }
+
+    @inlinable
+    public func eagerLoadAllColumns<
+        Row: IDModel,
+        RelationSchema: RelationSchemaProtocol,
+        TargetSchema: IDSchemaProtocol,
+        Decoding: Decodable
+    >(
+        into row: inout Row?,
+        keyPath: WritableKeyPath<Row, [Decoding]>,
+        targetTable: TargetSchema,
+        relationTable: RelationSchema
+    ) async throws
+    where Row.Schema.ID == RelationSchema.ID2, TargetSchema.ID == RelationSchema.ID1
+    {
+        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation.swapped)
+    }
+
+    @inlinable
+    public func eagerLoadAllColumns<
         Row: IDModel,
         RelationSchema: SchemaProtocol,
         TargetSchema: IDSchemaProtocol,
@@ -22,7 +79,8 @@ extension SQLDatabase {
             .eagerLoad(into: &rows, keyPath: keyPath, toIDColumn: targetTable.id, relation: relation)
     }
 
-    func eagerLoadAllColumns<
+    @inlinable
+    public func eagerLoadAllColumns<
         Row: IDModel,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
@@ -38,7 +96,8 @@ extension SQLDatabase {
         try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation)
     }
 
-    func eagerLoadAllColumns<
+    @inlinable
+    public func eagerLoadAllColumns<
         Row: IDModel,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
@@ -54,7 +113,8 @@ extension SQLDatabase {
         try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation.swapped)
     }
 
-    func eagerLoadAllColumns<
+    @inlinable
+    public func eagerLoadAllColumns<
         Row: IDModel,
         ParentID: IDType,
         Decoding: Decodable,
@@ -70,7 +130,8 @@ extension SQLDatabase {
             .eagerLoad(into: &row, keyPath: keyPath, column: column)
     }
 
-    func eagerLoadAllColumns<
+    @inlinable
+    public func eagerLoadAllColumns<
         Row: IDModel,
         ParentID: IDType,
         Decoding: Decodable,
@@ -88,7 +149,8 @@ extension SQLDatabase {
 }
 
 extension SQLSelectBuilder {
-    func eagerLoad<
+    @inlinable
+    public func eagerLoad<
         Row: IDModel,
         RelationSchema: SchemaProtocol,
         ToSchema: IDSchemaProtocol,
@@ -114,7 +176,8 @@ extension SQLSelectBuilder {
         row![keyPath: keyPath] = children
     }
 
-    func eagerLoad<
+    @inlinable
+    public func eagerLoad<
         Row: IDModel,
         RelationSchema: SchemaProtocol,
         ToSchema: IDSchemaProtocol,
@@ -151,7 +214,8 @@ extension SQLSelectBuilder {
         }
     }
 
-    func eagerLoad<
+    @inlinable
+    public func eagerLoad<
         Row: IDModel,
         ParentID: IDType,
         Decoding: Decodable,
@@ -170,7 +234,8 @@ extension SQLSelectBuilder {
         row![keyPath: keyPath] = children
     }
 
-    func eagerLoad<
+    @inlinable
+    public func eagerLoad<
         Row: IDModel,
         ParentID: IDType,
         Decoding: Decodable,
@@ -184,7 +249,7 @@ extension SQLSelectBuilder {
 
         // IN句でまとめて取得
         let children = try await self
-            .where(column, .equal, rows.map(\.id))
+            .where(column, .in, rows.map(\.id))
             .all()
 
         // idごとに分配

@@ -1,6 +1,6 @@
-@preconcurrency import SQLKit
+import SQLKit
 
-public struct TypedSQLColumn<Schema: SchemaProtocol, T: Decodable>: SQLExpression, Sendable, CustomStringConvertible {
+public struct TypedSQLColumn<Schema: SchemaProtocol, T: Decodable>: SQLExpression, CustomStringConvertible, Sendable {
     public var name: SQLIdentifier
     public var serializeTable: Bool
 

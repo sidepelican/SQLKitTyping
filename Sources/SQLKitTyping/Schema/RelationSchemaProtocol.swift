@@ -1,6 +1,6 @@
 import Foundation
 
-protocol RelationSchemaProtocol: SchemaProtocol {
+public protocol RelationSchemaProtocol: SchemaProtocol {
     associatedtype ID1: IDType
     associatedtype ID2: IDType
     var relation: PivotJoinRelation<Self, ID1, ID2> { get }
@@ -9,9 +9,9 @@ protocol RelationSchemaProtocol: SchemaProtocol {
 public struct PivotJoinRelation<RelationSchema: SchemaProtocol,
                                 FromID: IDType,
                                 ToID: IDType> {
-    var schema: RelationSchema
-    var from: KeyPath<RelationSchema, TypedSQLColumn<RelationSchema, FromID>>
-    var to: KeyPath<RelationSchema, TypedSQLColumn<RelationSchema, ToID>>
+    public var schema: RelationSchema
+    public var from: KeyPath<RelationSchema, TypedSQLColumn<RelationSchema, FromID>>
+    public var to: KeyPath<RelationSchema, TypedSQLColumn<RelationSchema, ToID>>
     public init(
         _ through: RelationSchema,
         from: KeyPath<RelationSchema, TypedSQLColumn<RelationSchema, FromID>>,
@@ -22,7 +22,7 @@ public struct PivotJoinRelation<RelationSchema: SchemaProtocol,
         self.to = to
     }
 
-    var swapped: PivotJoinRelation<RelationSchema, ToID, FromID> {
+    public var swapped: PivotJoinRelation<RelationSchema, ToID, FromID> {
         .init(schema, from: to, to: from)
     }
 }

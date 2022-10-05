@@ -1,7 +1,15 @@
-public protocol SchemaProtocol: Sendable {
+import SQLKit
+
+public protocol SchemaProtocol: SQLExpression, Sendable {
     static var tableName: String { get }
 }
 
 extension SchemaProtocol {
-    var tableName: String { Self.tableName }
+    public var tableName: String { Self.tableName }
+}
+
+extension SchemaProtocol {
+    public func serialize(to serializer: inout SQLSerializer) {
+        SQLIdentifier(tableName).serialize(to: &serializer)
+    }
 }
