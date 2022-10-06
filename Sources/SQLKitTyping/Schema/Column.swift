@@ -38,3 +38,5 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T: Decodable>: SQLExpressio
 extension SchemaProtocol {
     public typealias Column<T> = TypedSQLColumn<Self, T> where T: Decodable
 }
+
+extension SQLIdentifier: @unchecked Sendable {}
