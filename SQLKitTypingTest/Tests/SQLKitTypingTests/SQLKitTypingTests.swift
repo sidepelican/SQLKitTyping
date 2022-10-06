@@ -64,7 +64,7 @@ final class SQLKitTypingTests: XCTestCase {
         let rows = try await sql.select()
             .column(Lesson.subject)
             .from(School.self)
-            .join(Lesson.tableName, on: School.id.withTable, .equal, Lesson.schoolID)
+            .join(Lesson.self, on: Lesson.schoolID, .equal, School.id)
             .where(School.id.withTable, .equal, school1ID)
             .all(decoding: Row.self)
 
@@ -83,7 +83,7 @@ final class SQLKitTypingTests: XCTestCase {
             .column(Lesson.all)
             .column(School.name, as: "schoolName")
             .from(School.self)
-            .join(Lesson.tableName, on: School.id.withTable, .equal, Lesson.schoolID)
+            .join(Lesson.self, on: Lesson.schoolID, .equal, School.id)
             .all(decoding: Row.self)
 
         XCTAssertEqual(rows.count, 9)

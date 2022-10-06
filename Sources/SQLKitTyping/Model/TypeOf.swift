@@ -45,7 +45,7 @@ extension TypeOf: Hashable where Value: Hashable {}
 extension TypeOf: Sendable where Value: Sendable {}
 
 @propertyWrapper public struct OptionalTypeOf<Schema: SchemaProtocol, Value>: CustomStringConvertible {
-    public init(_ column: KeyPath<Schema, TypedSQLColumn<Schema, Value>>) {
+    public init(_ column: TypedSQLColumn<Schema, Value>) {
     }
 
     public init(wrappedValue: Value?) {

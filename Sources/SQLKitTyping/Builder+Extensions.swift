@@ -42,6 +42,30 @@ extension SQLPredicateBuilder {
     }
 }
 
+extension SQLJoinBuilder {
+    @discardableResult
+    public func join<S: SchemaProtocol, T, S2>(
+        _ table: S.Type,
+        method: SQLExpression = SQLJoinMethod.inner,
+        on left: TypedSQLColumn<S2, T>,
+        _ op: SQLBinaryOperator,
+        _ right: TypedSQLColumn<S, T>
+    ) -> Self {
+        self.join(SQLIdentifier(table.tableName), method: method, on: left.withTable, op, right.withTable)
+    }
+
+    @discardableResult
+    public func join<S: SchemaProtocol, T, S2>(
+        _ table: S.Type,
+        method: SQLExpression = SQLJoinMethod.inner,
+        on left: TypedSQLColumn<S2, T?>,
+        _ op: SQLBinaryOperator,
+        _ right: TypedSQLColumn<S, T>
+    ) -> Self {
+        self.join(SQLIdentifier(table.tableName), method: method, on: left.withTable, op, right.withTable)
+    }
+}
+
 extension SQLDatabase {
     public func update<Schema: SchemaProtocol>(_ schema: Schema.Type) -> SQLUpdateBuilder {
         return self.update(SQLIdentifier(schema.tableName))
