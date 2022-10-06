@@ -64,12 +64,19 @@ final class SQLKitTypingTests: XCTestCase {
         let rows = try await sql.select()
             .column(Lesson.subject)
             .from(School.self)
-            .join(Lesson.self, on: Lesson.schoolID, .equal, School.id)
+            .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
             .where(School.id.withTable, .equal, school1ID)
             .all(decoding: Row.self)
 
         XCTAssertEqual(rows.count, 3)
         XCTAssertEqual(Set(rows.map(\.subject)), ["foo", "bar", "baz"])
+    }
+
+    func testUpdateColumn() async throws {
+        try await sql.update(Student.self)
+            .set(Student.age, to: 21)
+            .where(Student.id, .equal, student4ID)
+            .run()
     }
 
     func testJoinedColumn() async throws {
@@ -83,7 +90,7 @@ final class SQLKitTypingTests: XCTestCase {
             .column(Lesson.all)
             .column(School.name, as: "schoolName")
             .from(School.self)
-            .join(Lesson.self, on: Lesson.schoolID, .equal, School.id)
+            .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
             .all(decoding: Row.self)
 
         XCTAssertEqual(rows.count, 9)

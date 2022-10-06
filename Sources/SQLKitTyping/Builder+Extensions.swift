@@ -17,6 +17,10 @@ extension SQLDatabase {
     public func drop<Schema: SchemaProtocol>(table schema: Schema.Type) -> SQLDropTableBuilder {
         return self.drop(table: SQLIdentifier(schema.tableName))
     }
+
+    public func update<Schema: SchemaProtocol>(_ schema: Schema.Type) -> SQLUpdateBuilder {
+        return self.update(SQLIdentifier(schema.tableName))
+    }
 }
 
 extension SQLSelectBuilder {
@@ -29,14 +33,14 @@ extension SQLSelectBuilder {
 extension SQLPredicateBuilder {
     @discardableResult
     public func `where`<S, E>(_ lhs: TypedSQLColumn<S, E>, _ op: SQLBinaryOperator, _ rhs: E) -> Self
-        where E: Encodable
+    where E: Encodable
     {
         return self.where(lhs, op, SQLBind(rhs))
     }
 
     @discardableResult
     public func `where`<S, E>(_ lhs: TypedSQLColumn<S, E>, _ op: SQLBinaryOperator, _ rhs: [E]) -> Self
-        where E: Encodable
+    where E: Encodable
     {
         return self.where(lhs, op, SQLBind.group(rhs))
     }
@@ -66,9 +70,12 @@ extension SQLJoinBuilder {
     }
 }
 
-extension SQLDatabase {
-    public func update<Schema: SchemaProtocol>(_ schema: Schema.Type) -> SQLUpdateBuilder {
-        return self.update(SQLIdentifier(schema.tableName))
+extension SQLUpdateBuilder {
+    @discardableResult
+    public func set<S, E>(_ column: TypedSQLColumn<S, E>, to bind: E) -> Self
+    where E: Encodable
+    {
+        return self.set(column, to: SQLBind(bind))
     }
 }
 
