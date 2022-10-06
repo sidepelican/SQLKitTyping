@@ -39,38 +39,33 @@ final class SQLKitTypingTests: XCTestCase {
     }
 
     func testTypedColumn() async throws {
-        let student = Student()
-
         var rows = try await sql.select()
-            .column(student.all)
-            .from(student)
-            .where(student.age, .greaterThanOrEqual , 42)
+            .column(Student.all)
+            .from(Student.self)
+            .where(Student.age, .greaterThanOrEqual , 42)
             .all(decoding: StudentAll.self)
 
         XCTAssertEqual(rows.count, 1)
 
         rows = try await sql.select()
-            .column(student.all)
-            .from(student)
-            .where(student.age, .is, SQLLiteral.null)
+            .column(Student.all)
+            .from(Student.self)
+            .where(Student.age, .is, SQLLiteral.null)
             .all(decoding: StudentAll.self)
 
         XCTAssertEqual(rows.count, 2)
     }
 
     func testColumnWithTable() async throws {
-        let school = School()
-        let lesson = Lesson()
-
         struct Row: Decodable {
             var subject: String
         }
 
         let rows = try await sql.select()
-            .column(lesson.subject)
-            .from(school)
-            .join(lesson, on: school.id.withTable, .equal, lesson.schoolID)
-            .where(school.id.withTable, .equal, school1ID)
+            .column(Lesson.subject)
+            .from(School.self)
+            .join(Lesson.tableName, on: School.id.withTable, .equal, Lesson.schoolID)
+            .where(School.id.withTable, .equal, school1ID)
             .all(decoding: Row.self)
 
         XCTAssertEqual(rows.count, 3)
@@ -78,21 +73,17 @@ final class SQLKitTypingTests: XCTestCase {
     }
 
     func testJoinedColumn() async throws {
-        struct Row: IDModel {
-            typealias Schema = Lesson
-            @Field(column: \.id) var id
-            @Field(column: \.subject) var subject
-            @ModelField(column: \School.name) var schoolName
+        struct Row: Decodable, Identifiable {
+            @Field(column: Lesson.id) var id
+            @Field(column: Lesson.subject) var subject
+            @Field(column: School.name) var schoolName
         }
 
-        let school = School()
-        let lesson = Lesson()
-
         let rows = try await sql.select()
-            .column(lesson.all)
-            .column(school.name, as: "schoolName")
-            .from(school)
-            .join(lesson, on: school.id.withTable, .equal, lesson.schoolID)
+            .column(Lesson.all)
+            .column(School.name, as: "schoolName")
+            .from(School.self)
+            .join(Lesson.tableName, on: School.id.withTable, .equal, Lesson.schoolID)
             .all(decoding: Row.self)
 
         XCTAssertEqual(rows.count, 9)
@@ -100,11 +91,9 @@ final class SQLKitTypingTests: XCTestCase {
     }
 
     func testParentEagerLoad() async throws {
-        struct SchoolWithLessons: IDModel {
-            typealias Schema = School
-
-            @Field(column: \.id) var id
-            @Field(column: \.name) var name
+        struct SchoolWithLessons: Decodable, Identifiable {
+            @Field(column: School.id) var id
+            @Field(column: School.name) var name
             var lessons: [LessonAll] = []
 
             enum CodingKeys: String, CodingKey {
@@ -113,30 +102,26 @@ final class SQLKitTypingTests: XCTestCase {
             }
         }
 
-        let school = School()
-
         var row = try await sql.select()
-            .column(school.all)
-            .from(school)
-            .where(school.id, .equal, school1ID)
+            .column(School.all)
+            .from(School.self)
+            .where(School.id, .equal, school1ID)
             .first(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &row, keyPath: \.lessons, column: Lesson().schoolID)
+        try await sql.eagerLoadAllColumns(into: &row, keyPath: \.lessons, column: Lesson.schoolID)
         XCTAssertEqual(row?.lessons.count, 3)
 
         var rows = try await sql.select()
-            .column(school.all)
-            .from(school)
+            .column(School.all)
+            .from(School.self)
             .all(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.lessons, column: Lesson().schoolID)
+        try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.lessons, column: Lesson.schoolID)
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
     }
 
     func testPivotEagerLoad() async throws {
-        struct SchoolWithStudents: IDModel {
-            typealias Schema = School
-
-            @Field(column: \.id) var id
-            @Field(column: \.name) var name
+        struct SchoolWithStudents: Decodable, Identifiable {
+            @Field(column: School.id) var id
+            @Field(column: School.name) var name
             var students: [StudentAll] = []
 
             enum CodingKeys: String, CodingKey {
@@ -145,25 +130,23 @@ final class SQLKitTypingTests: XCTestCase {
             }
         }
 
-        let school = School()
-
         var row = try await sql.select()
-            .column(school.all)
-            .from(school)
-            .where(school.id, .equal, school1ID)
+            .column(School.all)
+            .from(School.self)
+            .where(School.id, .equal, school1ID)
             .first(decoding: SchoolWithStudents.self)
         try await sql.eagerLoadAllColumns(into: &row, keyPath: \.students,
-                                          targetTable: Student(),
-                                          relationTable: SchoolStudentRelation())
+                                          targetTable: Student.self,
+                                          relationTable: SchoolStudentRelation.self)
         XCTAssertEqual(row?.students.count, 4)
 
         var rows = try await sql.select()
-            .column(school.all)
-            .from(school)
+            .column(School.all)
+            .from(School.self)
             .all(decoding: SchoolWithStudents.self)
         try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.students,
-                                          targetTable: Student(),
-                                          relationTable: SchoolStudentRelation())
+                                          targetTable: Student.self,
+                                          relationTable: SchoolStudentRelation.self)
         XCTAssertEqual(Set(rows.map(\.students.count)), [4, 3, 0])
     }
 }

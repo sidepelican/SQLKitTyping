@@ -1,4 +1,4 @@
 public protocol IDSchemaProtocol: SchemaProtocol {
     associatedtype ID: IDType
-    var id: Column<ID> { get }
+    static var id: Column<ID> { get }
 }

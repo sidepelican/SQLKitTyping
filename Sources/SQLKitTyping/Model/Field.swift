@@ -1,5 +1,5 @@
-@propertyWrapper public struct ModelField<Schema: SchemaProtocol, Value>: Decodable where Value: Decodable {
-    public init(column: KeyPath<Schema, TypedSQLColumn<Schema, Value>>) {
+@propertyWrapper public struct Field<Schema: SchemaProtocol, Value>: Decodable, CustomStringConvertible where Value: Decodable {
+    public init(column: TypedSQLColumn<Schema, Value>) {
     }
 
     public init(wrappedValue: Value) {
@@ -21,20 +21,24 @@
         let s = try decoder.singleValueContainer()
         wrappedValue = try s.decode(Value.self)
     }
+
+    public var description: String {
+        if let _wrappedValue = _wrappedValue {
+            return String(describing: _wrappedValue)
+        } else {
+            return "uninitialized"
+        }
+    }
 }
 
-extension Model {
-    public typealias Field<T> = ModelField<Schema, T> where T: Decodable
-}
-
-extension ModelField: Encodable where Value: Encodable {
+extension Field: Encodable where Value: Encodable {
     public func encode(to encoder: Encoder) throws {
         var s = encoder.singleValueContainer()
         try s.encode(wrappedValue)
     }
 }
 
-@propertyWrapper public struct OptionalField<Schema: SchemaProtocol, Value>: Decodable where Value: Decodable {
+@propertyWrapper public struct OptionalField<Schema: SchemaProtocol, Value>: Decodable, CustomStringConvertible where Value: Decodable {
     public init(column: KeyPath<Schema, TypedSQLColumn<Schema, Value>>) {
     }
 
@@ -50,6 +54,14 @@ extension ModelField: Encodable where Value: Encodable {
             wrappedValue = nil
         } else {
             wrappedValue = try s.decode(Value.self)
+        }
+    }
+
+    public var description: String {
+        if let wrappedValue = wrappedValue {
+            return String(describing: wrappedValue)
+        } else {
+            return "nil"
         }
     }
 }

@@ -1,12 +1,10 @@
 import Foundation
 import SQLKitTyping
 
-struct StudentAll: IDModel, Encodable {
-    typealias Schema = Student
-
-    @Field(column: \.id) var id
-    @Field(column: \.name) var name
-    @Field(column: \.age) var age
+struct StudentAll: Identifiable, Codable {
+    @Field(column: Student.id) var id
+    @Field(column: Student.name) var name
+    @Field(column: Student.age) var age
 
     init(id: ID,
          name: String,
@@ -17,11 +15,9 @@ struct StudentAll: IDModel, Encodable {
     }
 }
 
-struct SchoolAll: IDModel, Encodable {
-    typealias Schema = School
-
-    @Field(column: \.id) var id
-    @Field(column: \.name) var name
+struct SchoolAll: Identifiable, Codable {
+    @Field(column: School.id) var id
+    @Field(column: School.name) var name
 
     init(id: ID,
          name: String) {
@@ -30,12 +26,10 @@ struct SchoolAll: IDModel, Encodable {
     }
 }
 
-struct LessonAll: IDModel, Encodable {
-    typealias Schema = Lesson
-
-    @Field(column: \.id) var id
-    @Field(column: \.subject) var subject
-    @Field(column: \.schoolID) var schoolID
+struct LessonAll: Identifiable, Codable {
+    @Field(column: Lesson.id) var id
+    @Field(column: Lesson.subject) var subject
+    @Field(column: Lesson.schoolID) var schoolID
 
     init(id: ID,
          subject: String,

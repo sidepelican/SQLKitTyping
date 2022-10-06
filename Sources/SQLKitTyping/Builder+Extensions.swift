@@ -2,19 +2,27 @@ import Foundation
 import SQLKit
 
 extension SQLDatabase {
-    public func insert<Schema: SchemaProtocol>(into schema: Schema) -> SQLInsertBuilder {
+    public func create<Schema: SchemaProtocol>(table schema: Schema.Type) -> SQLCreateTableBuilder {
+        return self.create(table: SQLIdentifier(schema.tableName))
+    }
+
+    public func insert<Schema: SchemaProtocol>(into schema: Schema.Type) -> SQLInsertBuilder {
         return self.insert(into: SQLIdentifier(schema.tableName))
     }
 
-    public func delete<Schema: SchemaProtocol>(from schema: Schema) -> SQLDeleteBuilder {
+    public func delete<Schema: SchemaProtocol>(from schema: Schema.Type) -> SQLDeleteBuilder {
         return self.delete(from: SQLIdentifier(schema.tableName))
+    }
+
+    public func drop<Schema: SchemaProtocol>(table schema: Schema.Type) -> SQLDropTableBuilder {
+        return self.drop(table: SQLIdentifier(schema.tableName))
     }
 }
 
 extension SQLSelectBuilder {
     @discardableResult
-    public func from<Schema: SchemaProtocol>(_ schema: Schema) -> Self {
-        return self.from(SQLIdentifier(Schema.tableName))
+    public func from<Schema: SchemaProtocol>(_ schema: Schema.Type) -> Self {
+        return self.from(SQLIdentifier(schema.tableName))
     }
 }
 
@@ -35,17 +43,17 @@ extension SQLPredicateBuilder {
 }
 
 extension SQLDatabase {
-    public func update<Schema: SchemaProtocol>(_ schema: Schema) -> SQLUpdateBuilder {
-        return self.update(SQLIdentifier(Schema.tableName))
+    public func update<Schema: SchemaProtocol>(_ schema: Schema.Type) -> SQLUpdateBuilder {
+        return self.update(SQLIdentifier(schema.tableName))
     }
 }
 
 extension SchemaProtocol {
-    public var all: SQLColumn {
+    public static var all: SQLColumn {
         SQLColumn(SQLLiteral.all)
     }
 
-    public var allWithTable: SQLColumn {
+    public static var allWithTable: SQLColumn {
         SQLColumn(SQLLiteral.all, table: SQLIdentifier(Self.tableName))
     }
 }

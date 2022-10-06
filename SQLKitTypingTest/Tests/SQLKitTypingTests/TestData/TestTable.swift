@@ -11,39 +11,35 @@ let school2ID = School.ID(.init())
 let school3ID = School.ID(.init())
 
 func resetTestDatabase(sql: any SQLDatabase) throws {
-    let student = Student()
-    let school = School()
-    let schoolStudent = SchoolStudentRelation()
-    let lesson = Lesson()
-    try sql.drop(table: lesson).ifExists().run().wait()
-    try sql.drop(table: schoolStudent).ifExists().run().wait()
-    try sql.drop(table: school).ifExists().run().wait()
-    try sql.drop(table: student).ifExists().run().wait()
+    try sql.drop(table: Lesson.self).ifExists().run().wait()
+    try sql.drop(table: SchoolStudentRelation.self).ifExists().run().wait()
+    try sql.drop(table: School.self).ifExists().run().wait()
+    try sql.drop(table: Student.self).ifExists().run().wait()
 
-    try sql.create(table: student)
-        .column(student.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
-        .column(student.name, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
-        .column(student.age, type: SQLDataType.int)
+    try sql.create(table: Student.self)
+        .column(Student.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
+        .column(Student.name, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
+        .column(Student.age, type: SQLDataType.int)
         .run().wait()
 
-    try sql.create(table: school)
-        .column(school.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
-        .column(school.name, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
+    try sql.create(table: School.self)
+        .column(School.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
+        .column(School.name, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
         .run().wait()
 
-    try sql.create(table: schoolStudent)
-        .column(schoolStudent.schoolID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(school, school.id))
-        .column(schoolStudent.studentID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(student, student.id))
-        .primaryKey([schoolStudent.schoolID, schoolStudent.studentID])
+    try sql.create(table: SchoolStudentRelation.self)
+        .column(SchoolStudentRelation.schoolID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(School.tableName, School.id.rawValue))
+        .column(SchoolStudentRelation.studentID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(Student.tableName, Student.id.rawValue))
+        .primaryKey([SchoolStudentRelation.schoolID, SchoolStudentRelation.studentID])
         .run().wait()
 
-    try sql.create(table: lesson)
-        .column(lesson.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
-        .column(lesson.subject, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
-        .column(lesson.schoolID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(school, school.id))
+    try sql.create(table: Lesson.self)
+        .column(Lesson.id, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.primaryKey(autoIncrement: false))
+        .column(Lesson.subject, type: SQLDataType.text, SQLColumnConstraintAlgorithm.notNull)
+        .column(Lesson.schoolID, type: SQLDataType.uuid, SQLColumnConstraintAlgorithm.references(School.tableName, School.id.rawValue))
         .run().wait()
 
-    try sql.insert(into: student)
+    try sql.insert(into: Student.self)
         .models([
             StudentAll(id: student1ID, name: "ichiro", age: 42),
             StudentAll(id: student2ID, name: "jiro", age: nil),
@@ -53,7 +49,7 @@ func resetTestDatabase(sql: any SQLDatabase) throws {
         ])
         .run().wait()
 
-    try sql.insert(into: school)
+    try sql.insert(into: School.self)
         .models([
             SchoolAll(id: school1ID, name: "shibuya"),
             SchoolAll(id: school2ID, name: "ikebukuro"),
@@ -61,8 +57,8 @@ func resetTestDatabase(sql: any SQLDatabase) throws {
         ])
         .run().wait()
 
-    try sql.insert(into: schoolStudent)
-        .columns(schoolStudent.schoolID, schoolStudent.studentID)
+    try sql.insert(into: SchoolStudentRelation.self)
+        .columns(SchoolStudentRelation.schoolID, SchoolStudentRelation.studentID)
         .values(school1ID, student1ID)
         .values(school1ID, student2ID)
         .values(school1ID, student3ID)
@@ -72,7 +68,7 @@ func resetTestDatabase(sql: any SQLDatabase) throws {
         .values(school2ID, student3ID)
         .run().wait()
 
-    try sql.insert(into: lesson)
+    try sql.insert(into: Lesson.self)
         .models([
             LessonAll(id: .init(.init()), subject: "foo", schoolID: school1ID),
             LessonAll(id: .init(.init()), subject: "bar", schoolID: school1ID),

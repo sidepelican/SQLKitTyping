@@ -3,7 +3,7 @@ import SQLKit
 extension SQLDatabase {
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: SchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         FromID: IDType,
@@ -12,54 +12,54 @@ extension SQLDatabase {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
+        targetTable: TargetSchema.Type,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
     ) async throws
-    where Row.Schema.ID == FromID, TargetSchema.ID == ToID
+    where Row.ID == FromID, TargetSchema.ID == ToID
     {
         try await select()
-            .column(targetTable.all)
+            .column(SQLLiteral.all)
             .from(targetTable)
-            .eagerLoad(into: &row, keyPath: keyPath, toIDColumn: targetTable.id, relation: relation)
+            .eagerLoad(into: &row, keyPath: keyPath, toIDColumn: TargetSchema.id, relation: relation)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         Decoding: Decodable
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
-        relationTable: RelationSchema
+        targetTable: TargetSchema.Type,
+        relationTable: RelationSchema.Type
     ) async throws
-    where Row.Schema.ID == RelationSchema.ID1, TargetSchema.ID == RelationSchema.ID2
+    where Row.ID == RelationSchema.ID1, TargetSchema.ID == RelationSchema.ID2
     {
-        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation)
+        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: RelationSchema.relation)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         Decoding: Decodable
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
-        relationTable: RelationSchema
+        targetTable: TargetSchema.Type,
+        relationTable: RelationSchema.Type
     ) async throws
-    where Row.Schema.ID == RelationSchema.ID2, TargetSchema.ID == RelationSchema.ID1
+    where Row.ID == RelationSchema.ID2, TargetSchema.ID == RelationSchema.ID1
     {
-        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation.swapped)
+        try await eagerLoadAllColumns(into: &row, keyPath: keyPath, targetTable: targetTable, relation: RelationSchema.relation.swapped)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: SchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         FromID: IDType,
@@ -68,54 +68,54 @@ extension SQLDatabase {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
+        targetTable: TargetSchema.Type,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
     ) async throws
-    where Row.Schema.ID == FromID, TargetSchema.ID == ToID
+    where Row.ID == FromID, TargetSchema.ID == ToID
     {
         try await select()
-            .column(targetTable.all)
+            .column(SQLLiteral.all)
             .from(targetTable)
-            .eagerLoad(into: &rows, keyPath: keyPath, toIDColumn: targetTable.id, relation: relation)
+            .eagerLoad(into: &rows, keyPath: keyPath, toIDColumn: TargetSchema.id, relation: relation)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         Decoding: Decodable
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
-        relationTable: RelationSchema
+        targetTable: TargetSchema.Type,
+        relationTable: RelationSchema.Type
     ) async throws
-    where Row.Schema.ID == RelationSchema.ID1, TargetSchema.ID == RelationSchema.ID2
+    where Row.ID == RelationSchema.ID1, TargetSchema.ID == RelationSchema.ID2
     {
-        try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation)
+        try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: RelationSchema.relation)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: RelationSchemaProtocol,
         TargetSchema: IDSchemaProtocol,
         Decoding: Decodable
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        targetTable: TargetSchema,
-        relationTable: RelationSchema
+        targetTable: TargetSchema.Type,
+        relationTable: RelationSchema.Type
     ) async throws
-    where Row.Schema.ID == RelationSchema.ID2, TargetSchema.ID == RelationSchema.ID1
+    where Row.ID == RelationSchema.ID2, TargetSchema.ID == RelationSchema.ID1
     {
-        try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: relationTable.relation.swapped)
+        try await eagerLoadAllColumns(into: &rows, keyPath: keyPath, targetTable: targetTable, relation: RelationSchema.relation.swapped)
     }
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         ParentID: IDType,
         Decoding: Decodable,
         ChildSchema: SchemaProtocol
@@ -123,7 +123,7 @@ extension SQLDatabase {
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
         column: TypedSQLColumn<ChildSchema, ParentID>
-    ) async throws where Row.Schema.ID == ParentID {
+    ) async throws where Row.ID == ParentID {
         try await select()
             .column(SQLLiteral.all)
             .from(ChildSchema.tableName)
@@ -132,7 +132,7 @@ extension SQLDatabase {
 
     @inlinable
     public func eagerLoadAllColumns<
-        Row: IDModel,
+        Row: Identifiable,
         ParentID: IDType,
         Decoding: Decodable,
         ChildSchema: SchemaProtocol
@@ -140,7 +140,7 @@ extension SQLDatabase {
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
         column: TypedSQLColumn<ChildSchema, ParentID>
-    ) async throws where Row.Schema.ID == ParentID {
+    ) async throws where Row.ID == ParentID {
         try await select()
             .column(SQLLiteral.all)
             .from(ChildSchema.tableName)
@@ -151,7 +151,7 @@ extension SQLDatabase {
 extension SQLSelectBuilder {
     @inlinable
     public func eagerLoad<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: SchemaProtocol,
         ToSchema: IDSchemaProtocol,
         FromID: IDType,
@@ -162,15 +162,12 @@ extension SQLSelectBuilder {
         keyPath: WritableKeyPath<Row, [Decoding]>,
         toIDColumn: TypedSQLColumn<ToSchema, ToID>,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
-    ) async throws where Row.Schema.ID == FromID {
+    ) async throws where Row.ID == FromID {
         guard row != nil else { return }
 
-        let fromColumn = relation.schema[keyPath: relation.from]
-        let toColumn = relation.schema[keyPath: relation.to]
-
         let children = try await self
-            .join(relation.schema.tableName, on: toColumn.withTable, .equal, toIDColumn.withTable)
-            .where(fromColumn, .equal, row!.id)
+            .join(RelationSchema.tableName, on: relation.to.withTable, .equal, toIDColumn.withTable)
+            .where(relation.from, .equal, row!.id)
             .all(decoding: Decoding.self)
 
         row![keyPath: keyPath] = children
@@ -178,7 +175,7 @@ extension SQLSelectBuilder {
 
     @inlinable
     public func eagerLoad<
-        Row: IDModel,
+        Row: Identifiable,
         RelationSchema: SchemaProtocol,
         ToSchema: IDSchemaProtocol,
         FromID: IDType,
@@ -189,22 +186,19 @@ extension SQLSelectBuilder {
         keyPath: WritableKeyPath<Row, [Decoding]>,
         toIDColumn: TypedSQLColumn<ToSchema, ToID>,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
-    ) async throws where Row.Schema.ID == FromID {
+    ) async throws where Row.ID == FromID {
         if rows.isEmpty { return }
-
-        let fromColumn = relation.schema[keyPath: relation.from]
-        let toColumn = relation.schema[keyPath: relation.to]
 
         // IN句でまとめて取得
         let siblings = try await self
-            .join(relation.schema.tableName, on: toColumn.withTable, .equal, toIDColumn.withTable)
-            .where(fromColumn.withTable, .in, rows.map(\.id))
+            .join(RelationSchema.tableName, on: relation.to.withTable, .equal, toIDColumn.withTable)
+            .where(relation.from.withTable, .in, rows.map(\.id))
             .all()
 
         // idごとに分配
         var map: [FromID: [Decoding]] = [:]
         for sibling in siblings {
-            let fromID = try sibling.decode(column: fromColumn.rawValue, as: FromID.self)
+            let fromID = try sibling.decode(column: relation.from.rawValue, as: FromID.self)
             let value = try sibling.decode(model: Decoding.self)
             map[fromID, default: []].append(value)
         }
@@ -216,7 +210,7 @@ extension SQLSelectBuilder {
 
     @inlinable
     public func eagerLoad<
-        Row: IDModel,
+        Row: Identifiable,
         ParentID: IDType,
         Decoding: Decodable,
         ChildSchema: SchemaProtocol
@@ -224,7 +218,7 @@ extension SQLSelectBuilder {
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
         column: TypedSQLColumn<ChildSchema, ParentID>
-    ) async throws where Row.Schema.ID == ParentID {
+    ) async throws where Row.ID == ParentID {
         guard row != nil else { return }
 
         let children = try await self
@@ -236,7 +230,7 @@ extension SQLSelectBuilder {
 
     @inlinable
     public func eagerLoad<
-        Row: IDModel,
+        Row: Identifiable,
         ParentID: IDType,
         Decoding: Decodable,
         ChildSchema: SchemaProtocol
@@ -244,7 +238,7 @@ extension SQLSelectBuilder {
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
         column: TypedSQLColumn<ChildSchema, ParentID>
-    ) async throws where Row.Schema.ID == ParentID {
+    ) async throws where Row.ID == ParentID {
         if rows.isEmpty { return }
 
         // IN句でまとめて取得
