@@ -74,9 +74,9 @@ final class SQLKitTypingTests: XCTestCase {
 
     func testJoinedColumn() async throws {
         struct Row: Decodable, Identifiable {
-            @Field(column: Lesson.id) var id
-            @Field(column: Lesson.subject) var subject
-            @Field(column: School.name) var schoolName
+            @TypeOf(Lesson.id) var id
+            @TypeOf(Lesson.subject) var subject
+            @TypeOf(School.name) var schoolName
         }
 
         let rows = try await sql.select()
@@ -92,8 +92,8 @@ final class SQLKitTypingTests: XCTestCase {
 
     func testParentEagerLoad() async throws {
         struct SchoolWithLessons: Decodable, Identifiable {
-            @Field(column: School.id) var id
-            @Field(column: School.name) var name
+            @TypeOf(School.id) var id
+            @TypeOf(School.name) var name
             var lessons: [LessonAll] = []
 
             enum CodingKeys: String, CodingKey {
@@ -120,8 +120,8 @@ final class SQLKitTypingTests: XCTestCase {
 
     func testPivotEagerLoad() async throws {
         struct SchoolWithStudents: Decodable, Identifiable {
-            @Field(column: School.id) var id
-            @Field(column: School.name) var name
+            @TypeOf(School.id) var id
+            @TypeOf(School.name) var name
             var students: [StudentAll] = []
 
             enum CodingKeys: String, CodingKey {

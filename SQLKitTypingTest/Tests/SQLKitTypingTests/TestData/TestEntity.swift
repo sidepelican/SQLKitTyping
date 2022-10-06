@@ -2,9 +2,9 @@ import Foundation
 import SQLKitTyping
 
 struct StudentAll: Identifiable, Codable {
-    @Field(column: Student.id) var id
-    @Field(column: Student.name) var name
-    @Field(column: Student.age) var age
+    @TypeOf(Student.id) var id
+    @TypeOf(Student.name) var name
+    @TypeOf(Student.age) var age
 
     init(id: ID,
          name: String,
@@ -16,8 +16,8 @@ struct StudentAll: Identifiable, Codable {
 }
 
 struct SchoolAll: Identifiable, Codable {
-    @Field(column: School.id) var id
-    @Field(column: School.name) var name
+    @TypeOf(School.id) var id
+    @TypeOf(School.name) var name
 
     init(id: ID,
          name: String) {
@@ -27,9 +27,9 @@ struct SchoolAll: Identifiable, Codable {
 }
 
 struct LessonAll: Identifiable, Codable {
-    @Field(column: Lesson.id) var id
-    @Field(column: Lesson.subject) var subject
-    @Field(column: Lesson.schoolID) var schoolID
+    @TypeOf(Lesson.id) var id
+    @TypeOf(Lesson.subject) var subject
+    @TypeOf(Lesson.schoolID) var schoolID
 
     init(id: ID,
          subject: String,

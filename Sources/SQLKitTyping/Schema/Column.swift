@@ -1,6 +1,6 @@
 import SQLKit
 
-public struct TypedSQLColumn<Schema: SchemaProtocol, T: Decodable>: SQLExpression, CustomStringConvertible, Sendable {
+public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomStringConvertible, Sendable {
     public var name: SQLIdentifier
     public var serializeTable: Bool
 
