@@ -198,7 +198,7 @@ extension SQLSelectBuilder {
         // idごとに分配
         var map: [FromID: [Decoding]] = [:]
         for sibling in siblings {
-            let fromID = try sibling.decode(column: relation.from.rawValue, as: FromID.self)
+            let fromID = try sibling.decode(column: relation.from.name, as: FromID.self)
             let value = try sibling.decode(model: Decoding.self)
             map[fromID, default: []].append(value)
         }
@@ -249,7 +249,7 @@ extension SQLSelectBuilder {
         // idごとに分配
         var map: [ParentID: [Decoding]] = [:]
         for child in children {
-            let fromID = try child.decode(column: column.rawValue, as: ParentID.self)
+            let fromID = try child.decode(column: column.name, as: ParentID.self)
             let value = try child.decode(model: Decoding.self)
             map[fromID, default: []].append(value)
         }

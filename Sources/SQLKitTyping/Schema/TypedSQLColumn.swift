@@ -1,16 +1,16 @@
 import SQLKit
 
 public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomStringConvertible, Sendable {
-    public var name: SQLIdentifier
+    public var name: String
     public var serializeTable: Bool
 
     public init(_ name: String, serializeTable: Bool = false) {
-        self.name = SQLIdentifier(name)
+        self.name = name
         self.serializeTable = serializeTable
     }
 
     public init(_ name: SQLIdentifier, serializeTable: Bool = false) {
-        self.name = name
+        self.name = name.string
         self.serializeTable = serializeTable
     }
 
@@ -19,24 +19,23 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomSt
             SQLIdentifier(Schema.tableName).serialize(to: &serializer)
             serializer.write(".")
         }
-        name.serialize(to: &serializer)
+        SQLIdentifier(name).serialize(to: &serializer)
     }
 
     public var withTable: Self {
         Self(name, serializeTable: true)
     }
 
+    @available(*, deprecated, renamed: "name", message: "deprecated because this is not RawRepresentable")
     public var rawValue: String {
-        name.string
+        name
     }
 
     public var description: String {
-        rawValue
+        name
     }
 }
 
 extension SchemaProtocol {
     public typealias Column<T> = TypedSQLColumn<Self, T> where T: Decodable
 }
-
-extension SQLIdentifier: @unchecked Sendable {}
