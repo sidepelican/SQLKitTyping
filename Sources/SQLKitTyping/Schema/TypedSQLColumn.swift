@@ -39,3 +39,9 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomSt
 extension SchemaProtocol {
     public typealias Column<T> = TypedSQLColumn<Self, T> where T: Decodable
 }
+
+@attached(memberAttribute)
+public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
+
+@attached(peer, names: arbitrary)
+public macro Column() = #externalMacro(module: "SQLKitTypingMacros", type: "Column")
