@@ -58,7 +58,7 @@ macros: schemaMacro
 """
 struct Test {
     @Column var value: Int
-    @Column public var value2: Int?
+    @Column public var fooBar: Int?
 }
 """,
 expandedSource: """
@@ -68,11 +68,11 @@ struct Test {
     typealias Value = Int
 
     static let value = Column<Value>("value")
-    public var value2: Int?
+    public var fooBar: Int?
 
-    public typealias Value2 = Int?
+    public typealias FooBar = Int?
 
-    public static let value2 = Column<Value2>("value2")
+    public static let fooBar = Column<FooBar>("fooBar")
 }
 """,
 macros: columnMacro
@@ -103,4 +103,37 @@ diagnostics: [
 macros: columnMacro
         )
     }
+
+    func testColumnMacroAvoidTypealiasReferencesItself() throws {
+        assertMacroExpansion(
+"""
+struct Test {
+    @Column var foo: Foo
+    @Column var bar: Bar?
+    @Column var baz: MyModule.Baz
+}
+""",
+expandedSource: """
+struct Test {
+    var foo: Foo
+
+    typealias FooType = Foo
+
+    static let foo = Column<FooType>("foo")
+    var bar: Bar?
+
+    typealias BarType = Bar?
+
+    static let bar = Column<BarType>("bar")
+    var baz: MyModule.Baz
+
+    typealias Baz = MyModule.Baz
+
+    static let baz = Column<Baz>("baz")
+}
+""",
+macros: columnMacro
+        )
+    }
+
 }

@@ -30,9 +30,50 @@ public struct Column: PeerMacro {
             throw MessageError("missing type annotation")
         }
 
+        var columnTypeName = columnName.firstUpper
+        if columnType.typeIdentifiers.contains(columnTypeName) {
+            columnTypeName += "Type"
+        }
+
         return [
-            "\(modifiers)typealias \(raw: columnName.capitalized) = \(columnType)",
-            "\(modifiers)static let \(raw: columnName) = Column<\(raw: columnName.capitalized)>(\"\(raw: columnName)\")",
+            "\(modifiers)typealias \(raw: columnTypeName) = \(columnType)",
+            "\(modifiers)static let \(raw: columnName) = Column<\(raw: columnTypeName)>(\"\(raw: columnName)\")",
         ]
+    }
+}
+
+extension String {
+    fileprivate var firstUpper: String {
+        guard !isEmpty else { return self }
+
+        var result = self
+        let firstLetter = self[startIndex...startIndex].uppercased()
+        result.replaceSubrange(startIndex...startIndex, with: firstLetter)
+        return result
+    }
+}
+
+extension TypeSyntax {
+    fileprivate var typeIdentifiers: AnyIterator<String> {
+        var stack: [TypeSyntax] = [self]
+        return .init { () -> String? in
+            while let next = stack.popLast() {
+                if let optional = next.as(OptionalTypeSyntax.self) {
+                    stack.append(optional.wrappedType)
+                    continue
+                }
+
+                if let identifier = next.as(IdentifierTypeSyntax.self) {
+                    if let genericArguments = identifier.genericArgumentClause {
+                        stack.append(contentsOf: genericArguments.arguments.map(\.argument))
+                    }
+                    return identifier.name.text
+                }
+
+                // unsupported. (ex: FunctionType, TupleType
+            }
+
+            return nil
+        }
     }
 }
