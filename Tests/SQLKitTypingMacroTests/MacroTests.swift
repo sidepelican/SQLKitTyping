@@ -136,4 +136,29 @@ macros: columnMacro
         )
     }
 
+    func testColumnMacroTrimBacktick() throws {
+        assertMacroExpansion(
+"""
+struct Test {
+    @Column var `class`: Class
+    @Column var `struct`: Int
+}
+""",
+expandedSource: """
+struct Test {
+    var `class`: Class
+
+    typealias ClassType = Class
+
+    static let `class` = Column<ClassType>("class")
+    var `struct`: Int
+
+    typealias Struct = Int
+
+    static let `struct` = Column<Struct>("struct")
+}
+""",
+macros: columnMacro
+        )
+    }
 }

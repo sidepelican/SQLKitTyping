@@ -25,7 +25,7 @@ public struct Column: PeerMacro {
             throw MessageError("@Column cannot apply to static property")
         }
 
-        let columnName = identifier.text
+        let columnName = identifier.text.trimmingBacktick
         guard let columnType = binding.typeAnnotation?.type else {
             throw MessageError("missing type annotation")
         }
@@ -37,7 +37,7 @@ public struct Column: PeerMacro {
 
         return [
             "\(modifiers)typealias \(raw: columnTypeName) = \(columnType)",
-            "\(modifiers)static let \(raw: columnName) = Column<\(raw: columnTypeName)>(\"\(raw: columnName)\")",
+            "\(modifiers)static let \(identifier) = Column<\(raw: columnTypeName)>(\"\(raw: columnName)\")",
         ]
     }
 }
@@ -50,6 +50,10 @@ extension String {
         let firstLetter = self[startIndex...startIndex].uppercased()
         result.replaceSubrange(startIndex...startIndex, with: firstLetter)
         return result
+    }
+
+    fileprivate var trimmingBacktick: String {
+        self.trimmingCharacters(in: ["`"])
     }
 }
 
