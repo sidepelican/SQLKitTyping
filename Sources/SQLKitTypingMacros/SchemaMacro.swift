@@ -12,8 +12,8 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
         providingAttributesFor member: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [AttributeSyntax] {
-        guard let declaration = declaration.as(StructDeclSyntax.self) else {
-            throw MessageError("struct required for @Schema")
+        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+            return []
         }
 
         guard let _ = ColumnDefinition(
@@ -26,7 +26,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
 
         return [AttributeSyntax("Column") {
             LabeledExprSyntax(
-                expression: StringLiteralExprSyntax(content: "\(declaration.name.trimmed.text)_types")
+                expression: StringLiteralExprSyntax(content: "\(namedDecl.name.trimmed.text)_types")
             )
         }]
     }
@@ -37,13 +37,17 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
         providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let declaration = declaration.as(StructDeclSyntax.self) else {
+        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+            return []
+        }
+
+        guard let declGroup = declaration.asProtocol(DeclGroupSyntax.self) else {
             return []
         }
 
         return [DeclSyntax(
-            try EnumDeclSyntax("\(declaration.modifiers)enum \(declaration.name.trimmed)_types") {
-                for member in declaration.memberBlock.members {
+            try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
+                for member in declGroup.memberBlock.members {
                     if let def = ColumnDefinition(
                         decl: member.decl,
                         in: context,
