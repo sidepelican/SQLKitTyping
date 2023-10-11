@@ -1,9 +1,9 @@
 @propertyWrapper public struct TypeOf<Schema: SchemaProtocol, Value>: CustomStringConvertible {
-    @available(*, deprecated, message: "Use @Schema macro instead")
+    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
     public init(_ column: TypedSQLColumn<Schema, Value>) {
     }
 
-    @available(*, deprecated, message: "Use @Schema macro instead")
+    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
     public init(wrappedValue: Value) {
         self.wrappedValue = wrappedValue
     }
@@ -47,11 +47,11 @@ extension TypeOf: Hashable where Value: Hashable {}
 extension TypeOf: Sendable where Value: Sendable {}
 
 @propertyWrapper public struct OptionalTypeOf<Schema: SchemaProtocol, Value>: CustomStringConvertible {
-    @available(*, deprecated, message: "Use @Schema macro instead")
+    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
     public init(_ column: TypedSQLColumn<Schema, Value>) {
     }
 
-    @available(*, deprecated, message: "Use @Schema macro instead")
+    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
     public init(wrappedValue: Value?) {
         self.wrappedValue = wrappedValue
     }

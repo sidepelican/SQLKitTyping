@@ -8,3 +8,8 @@ fileprivate struct Test: SchemaProtocol {
     var foo: Int
     var bar: String
 }
+
+fileprivate struct S {
+    var foo: Test.Foo
+    var bar: Test.Bar
+}
