@@ -40,8 +40,6 @@ extension SchemaProtocol {
     public typealias Column<T> = TypedSQLColumn<Self, T> where T: Decodable
 }
 
-@attached(memberAttribute)
-public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
-
+@attached(member)
 @attached(peer, names: arbitrary)
-public macro Column() = #externalMacro(module: "SQLKitTypingMacros", type: "Column")
+public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
