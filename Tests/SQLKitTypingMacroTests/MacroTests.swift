@@ -7,6 +7,7 @@ import SQLKitTypingMacros
 
 private let schemaMacro: [String: Macro.Type] = [
     "Schema": Schema.self,
+    "Column": Column.self,
 ]
 
 final class MacroTests: XCTestCase {
@@ -119,11 +120,11 @@ struct Test {
 expandedSource: """
 struct Test {
     var `class`: Class
-    var `struct`: Int
 
     typealias Class = Test_types.__macro_class
 
     static let `class` = Column<Test_types.__macro_class>("class")
+    var `struct`: Int
 
     typealias Struct = Test_types.__macro_struct
 

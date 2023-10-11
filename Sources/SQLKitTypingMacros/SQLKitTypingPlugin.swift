@@ -5,5 +5,6 @@ import SwiftSyntaxMacros
 struct SQLKitTypingPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         Schema.self,
+        Column.self,
     ]
 }
