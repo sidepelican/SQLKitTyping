@@ -21,18 +21,19 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
             ]
         ),
-        .testTarget(
-            name: "SQLKitTypingMacroTests",
-            dependencies: [
-                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
-                "SQLKitTypingMacros",
-            ]
-        ),
         .target(
             name: "SQLKitTyping",
             dependencies: [
                 .product(name: "SQLKit", package: "sql-kit"),
                 "SQLKitTypingMacros",
+            ]
+        ),
+        .testTarget(
+            name: "SQLKitTypingMacroTests",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+                "SQLKitTypingMacros",
+                "SQLKitTyping",
             ]
         ),
     ]

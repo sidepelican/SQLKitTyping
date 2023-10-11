@@ -4,18 +4,18 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct Schema: MemberMacro, PeerMacro {
+    // MARK: - Member
     public static func expansion(
         of node: AttributeSyntax,
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let enumDecl = declaration.as(EnumDeclSyntax.self) else {
-            throw MessageError("enum required for @Schema")
+        guard let declaration = declaration.as(StructDeclSyntax.self) else {
+            throw MessageError("struct required for @Schema")
         }
 
-        return enumDecl.memberBlock.members.flatMap { member -> [DeclSyntax] in
+        return declaration.memberBlock.members.flatMap { member -> [DeclSyntax] in
             guard let def = ColumnDefinition(
-                parent: enumDecl,
                 decl: member.decl,
                 in: context,
                 emitsDiagnostics: true
@@ -23,39 +23,38 @@ public struct Schema: MemberMacro, PeerMacro {
                 return []
             }
 
+            let aliasName = "\(declaration.name.trimmed)_types.\(def.typealiasName)"
+
             return [
-                "\(def.modifiers)typealias \(raw: def.columnTypeName) = \(raw: def.typealiasName)",
-                "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = Column<\(raw: def.typealiasName)>(\"\(raw: def.columnName)\")",
+                "\(def.modifiers)typealias \(raw: def.columnTypeName) = \(raw: aliasName)",
+                "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = Column<\(raw: aliasName)>(\"\(raw: def.columnName)\")",
             ]
         }
     }
 
+    // MARK: - Peer
     public static func expansion(
         of node: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let enumDecl = declaration.as(EnumDeclSyntax.self) else {
+        guard let declaration = declaration.as(StructDeclSyntax.self) else {
             return []
         }
-        return enumDecl.memberBlock.members.compactMap { member in
-            guard let def = ColumnDefinition(
-                parent: enumDecl,
-                decl: member.decl,
-                in: context,
-                emitsDiagnostics: false // 上のマクロとエラーが重複するので、こちらではエラーをthrowしない
-            ) else {
-                return nil
-            }
 
-            var modifiersWithoutStatic = def.modifiers
-            if let i = modifiersWithoutStatic.firstIndex(where: { $0.name.tokenKind == .keyword(.static) }) {
-                modifiersWithoutStatic.remove(at: i)
-                modifiersWithoutStatic = modifiersWithoutStatic.with(\.trailingTrivia, .spaces(1))
+        return [DeclSyntax(
+            try EnumDeclSyntax("\(declaration.modifiers)enum \(declaration.name.trimmed)_types") {
+                for member in declaration.memberBlock.members {
+                    if let def = ColumnDefinition(
+                        decl: member.decl,
+                        in: context,
+                        emitsDiagnostics: false // 上のマクロとエラーが重複するので、こちらではエラーをthrowしない
+                    ) {
+                        "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
+                    }
+                }
             }
-
-            return "\(modifiersWithoutStatic)typealias \(raw: def.typealiasName) = \(def.columnType)"
-        }
+        )]
     }
 }
 
@@ -72,7 +71,6 @@ fileprivate struct ColumnDefinition {
     var modifiers: DeclModifierListSyntax // public
 
     init?(
-        parent: EnumDeclSyntax,
         decl: DeclSyntax,
         in context: some MacroExpansionContext,
         emitsDiagnostics: Bool
@@ -103,7 +101,7 @@ fileprivate struct ColumnDefinition {
         }
         self.columnType = columnType
         self.columnTypeName = columnName.firstUpper
-        typealiasName = "__macro_\(parent.name.text)_\(columnName)"
+        typealiasName = "__macro_\(columnName)"
         modifiers = varDecl.modifiers
     }
 }

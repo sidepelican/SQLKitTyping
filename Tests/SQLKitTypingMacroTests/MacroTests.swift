@@ -1,6 +1,8 @@
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
+
+#if canImport(SQLKitTypingMacros)
 import SQLKitTypingMacros
 
 private let schemaMacro: [String: Macro.Type] = [
@@ -14,20 +16,22 @@ final class MacroTests: XCTestCase {
         assertMacroExpansion(
 """
 @Schema
-enum Test {
+struct Test {
     var value: Int
 }
 """,
 expandedSource: """
-enum Test {
+struct Test {
     var value: Int
 
-    typealias Value = __macro_Test_value
+    typealias Value = Test_types.__macro_value
 
-    static let value = Column<__macro_Test_value>("value")
+    static let value = Column<Test_types.__macro_value>("value")
 }
 
-typealias __macro_Test_value = Int
+enum Test_types {
+    typealias __macro_value = Int
+}
 """,
 macros: schemaMacro
         )
@@ -37,20 +41,22 @@ macros: schemaMacro
         assertMacroExpansion(
 """
 @Schema
-enum Test {
+public struct Test {
     public var fooBar: Int?
 }
 """,
 expandedSource: """
-enum Test {
+public struct Test {
     public var fooBar: Int?
 
-    public typealias FooBar = __macro_Test_fooBar
+    public typealias FooBar = Test_types.__macro_fooBar
 
-    public static let fooBar = Column<__macro_Test_fooBar>("fooBar")
+    public static let fooBar = Column<Test_types.__macro_fooBar>("fooBar")
 }
 
-public typealias __macro_Test_fooBar = Int?
+public enum Test_types {
+    public typealias __macro_fooBar = Int?
+}
 """,
 macros: schemaMacro
         )
@@ -60,15 +66,18 @@ macros: schemaMacro
         assertMacroExpansion(
 """
 @Schema
-enum Test {
+struct Test {
     static let tableName: String = "foo"
     var computed: Int { 42 }
 }
 """,
 expandedSource: """
-enum Test {
+struct Test {
     static let tableName: String = "foo"
     var computed: Int { 42 }
+}
+
+enum Test_types {
 }
 """,
 macros: schemaMacro
@@ -79,13 +88,16 @@ macros: schemaMacro
         assertMacroExpansion(
 """
 @Schema
-enum Test {
+struct Test {
     var wrapper = ""
 }
 """,
 expandedSource: """
-enum Test {
+struct Test {
     var wrapper = ""
+}
+
+enum Test_types {
 }
 """,
 diagnostics: [
@@ -99,30 +111,32 @@ macros: schemaMacro
         assertMacroExpansion(
 """
 @Schema
-enum Test {
+struct Test {
     var `class`: Class
     var `struct`: Int
 }
 """,
 expandedSource: """
-enum Test {
+struct Test {
     var `class`: Class
     var `struct`: Int
 
-    typealias Class = __macro_Test_class
+    typealias Class = Test_types.__macro_class
 
-    static let `class` = Column<__macro_Test_class>("class")
+    static let `class` = Column<Test_types.__macro_class>("class")
 
-    typealias Struct = __macro_Test_struct
+    typealias Struct = Test_types.__macro_struct
 
-    static let `struct` = Column<__macro_Test_struct>("struct")
+    static let `struct` = Column<Test_types.__macro_struct>("struct")
 }
 
-typealias __macro_Test_class = Class
-
-typealias __macro_Test_struct = Int
+enum Test_types {
+    typealias __macro_class = Class
+    typealias __macro_struct = Int
+}
 """,
 macros: schemaMacro
         )
     }
 }
+#endif
