@@ -25,6 +25,7 @@ expandedSource: """
 struct Test {
     var value: Int
 
+    /// => Int
     typealias Value = Test_types.__macro_value
 
     static let value = Column<Test_types.__macro_value>("value")
@@ -50,6 +51,7 @@ expandedSource: """
 public struct Test {
     public var fooBar: Int?
 
+    /// => Int?
     public typealias FooBar = Test_types.__macro_fooBar
 
     public static let fooBar = Column<Test_types.__macro_fooBar>("fooBar")
@@ -121,11 +123,13 @@ expandedSource: """
 struct Test {
     var `class`: Class
 
+    /// => Class
     typealias Class = Test_types.__macro_class
 
     static let `class` = Column<Test_types.__macro_class>("class")
     var `struct`: Int
 
+    /// => Int
     typealias Struct = Test_types.__macro_struct
 
     static let `struct` = Column<Test_types.__macro_struct>("struct")
