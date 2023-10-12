@@ -24,11 +24,19 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             return []
         }
 
-        return [AttributeSyntax("Column") {
-            LabeledExprSyntax(
-                expression: StringLiteralExprSyntax(content: "\(namedDecl.name.trimmed.text)_types")
-            )
-        }]
+        var attributes = [
+            AttributeSyntax("Column") {
+                LabeledExprSyntax(
+                    expression: "\(namedDecl.name.trimmed.text)_types".makeLiteralSyntax()
+                )
+            },
+        ]
+
+        if declaration.is(EnumDeclSyntax.self) {
+            attributes.append(AttributeSyntax(TypeSyntax("EraseProperty")))
+        }
+
+        return attributes
     }
 
     // MARK: - Peer
@@ -45,7 +53,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             return []
         }
 
-        return [DeclSyntax(
+        return [
             try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
                 for member in declGroup.memberBlock.members {
                     if let def = ColumnDefinition(
@@ -56,7 +64,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
                         "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
                     }
                 }
-            }
-        )]
+            }.cast(DeclSyntax.self)
+        ]
     }
 }

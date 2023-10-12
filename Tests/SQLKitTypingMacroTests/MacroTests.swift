@@ -139,5 +139,29 @@ enum Test_types {
 macros: schemaMacro
         )
     }
+
+    func testSchemaAddErasePropertyForEnum() throws {
+        assertMacroExpansion(
+"""
+@Schema
+enum Test {
+    var value: Int
+}
+""",
+expandedSource: """
+enum Test {
+    @Column("Test_types") @EraseProperty
+    var value: Int
+}
+
+enum Test_types {
+    typealias __macro_value = Int
+}
+""",
+macros: [
+    "Schema": Schema.self,
+]
+        )
+    }
 }
 #endif

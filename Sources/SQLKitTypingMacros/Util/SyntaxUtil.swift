@@ -20,7 +20,6 @@ extension DeclModifierListSyntax {
     }
 }
 
-
 extension TypeSyntax {
     var typeIdentifiers: AnyIterator<String> {
         var stack: [TypeSyntax] = [self]

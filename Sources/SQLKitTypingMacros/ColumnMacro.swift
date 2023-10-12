@@ -4,6 +4,7 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct Column: PeerMacro {
+
     // MARK: - Peer
     public static func expansion(
         of node: AttributeSyntax,
