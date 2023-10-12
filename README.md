@@ -13,27 +13,21 @@ Add slightly type safe interface for SQLKit.
 Define table schema
 
 ```swift
+@Schema
 enum School: IDSchemaProtocol {
     static var tableName: String { "schools" }
 
-    static let id = Column<SchoolID>("id")
-    static let name = Column<String>("name")
+    var id: SchoolID
+    var name: String
 }
 ```
 
-Define entity type with Schema.
-(The basic mechanism is based on Codable, just add thin propertyWrapper.)
+Define entity type with Column Type.
 
 ```swift
 struct SchoolAll: Identifiable, Codable {
-    @TypeOf(School.id) var id // propagate column type
-    @TypeOf(School.name) var name
-
-    init(id: ID,
-         name: String) {
-        self.id = id
-        self.name = name
-    }
+    var id: School.Id // macro generates column types
+    var name: School.Name
 }
 ```
 
@@ -51,19 +45,21 @@ var rows = try await sql.select()
 Eagerload children or slibling entities
 
 ```swift
+@Schema
 enum Student: IDSchemaProtocol {
     static var tableName: String { "students" }
 
-    static let id = Column<StudentID>("id")
-    static let name = Column<String>("name")
-    static let age = Column<Int?>("age")
+    var id: StudentID
+    var name: String
+    var age: Int?
 }
 
+@Schema
 enum SchoolStudentRelation: RelationSchemaProtocol {
     static var tableName: String { "schools_students" }
 
-    static let schoolID = Column<SchoolID>("schoolID")
-    static let studentID = Column<StudentID>("studentID")
+    var schoolID: SchoolID
+    var studentID: StudentID
 
     static var relation: PivotJoinRelation<Self, SchoolID, StudentID> {
         .init(from: schoolID, to: studentID)
@@ -71,8 +67,8 @@ enum SchoolStudentRelation: RelationSchemaProtocol {
 }
 
 struct SchoolWithStudents: Decodable, Identifiable {
-    @TypeOf(School.id) var id
-    @TypeOf(School.name) var name
+    var id: School.Id
+    var name: School.Name
     var students: [StudentAll] = []
 
     enum CodingKeys: String, CodingKey {
