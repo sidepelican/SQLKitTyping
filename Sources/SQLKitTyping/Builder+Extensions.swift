@@ -1,4 +1,3 @@
-import Foundation
 import SQLKit
 
 extension SQLDatabase {

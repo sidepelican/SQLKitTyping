@@ -44,6 +44,15 @@
         "revision" : "a16e2f54a25b2af217044e5168997009a505930f",
         "version" : "2.42.0"
       }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "74203046135342e4a4a627476dd6caf8b28fe11b",
+        "version" : "509.0.0"
+      }
     }
   ],
   "version" : 2

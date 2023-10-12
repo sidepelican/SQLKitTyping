@@ -1,6 +1,7 @@
-// swift-tools-version: 5.6
+// swift-tools-version: 5.9
 
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "SQLKitTyping",
@@ -10,12 +11,29 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/sql-kit.git", from: "3.0.0"),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
     ],
     targets: [
+        .macro(
+            name: "SQLKitTypingMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ]
+        ),
         .target(
             name: "SQLKitTyping",
             dependencies: [
                 .product(name: "SQLKit", package: "sql-kit"),
+                "SQLKitTypingMacros",
+            ]
+        ),
+        .testTarget(
+            name: "SQLKitTypingMacroTests",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
+                "SQLKitTypingMacros",
+                "SQLKitTyping",
             ]
         ),
     ]
