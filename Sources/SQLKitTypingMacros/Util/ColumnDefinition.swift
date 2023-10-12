@@ -102,6 +102,13 @@ extension String {
     }
 
     fileprivate var trimmingBacktick: String {
-        self.trimmingCharacters(in: ["`"])
+        var result = self
+        if result.hasPrefix("`") {
+            result.removeFirst()
+        }
+        if result.hasSuffix("`") {
+            result.removeLast()
+        }
+        return result
     }
 }

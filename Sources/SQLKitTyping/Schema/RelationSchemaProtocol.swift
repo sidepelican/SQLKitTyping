@@ -1,5 +1,3 @@
-import Foundation
-
 public protocol RelationSchemaProtocol: SchemaProtocol {
     associatedtype ID1: IDType
     associatedtype ID2: IDType
