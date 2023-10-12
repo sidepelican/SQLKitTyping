@@ -5,9 +5,14 @@ import XCTest
 #if canImport(SQLKitTypingMacros)
 import SQLKitTypingMacros
 
-private let schemaMacro: [String: Macro.Type] = [
+private let allMacro: [String: Macro.Type] = [
     "Schema": Schema.self,
     "Column": Column.self,
+    "EraseProperty": EraseProperty.self,
+]
+
+private let schemaMacro: [String: Macro.Type] = [
+    "Schema": Schema.self,
 ]
 
 final class MacroTests: XCTestCase {
@@ -23,7 +28,12 @@ struct Test {
 """,
 expandedSource: """
 struct Test {
-    var value: Int
+    var value: Int {
+        @available(*, unavailable)
+        get {
+            fatalError()
+        }
+    }
 
     /// => Int
     typealias Value = Test_types.__macro_value
@@ -35,7 +45,7 @@ enum Test_types {
     typealias __macro_value = Int
 }
 """,
-macros: schemaMacro
+macros: allMacro
         )
     }
 
@@ -49,19 +59,17 @@ public struct Test {
 """,
 expandedSource: """
 public struct Test {
+    @EraseProperty @Column("Test_types")
     public var fooBar: Int?
-
-    /// => Int?
-    public typealias FooBar = Test_types.__macro_fooBar
-
-    public static let fooBar = Column<Test_types.__macro_fooBar>("fooBar")
 }
 
 public enum Test_types {
     public typealias __macro_fooBar = Int?
 }
 """,
-macros: schemaMacro
+macros: [
+    "Schema": Schema.self,
+]
         )
     }
 
@@ -121,13 +129,23 @@ struct Test {
 """,
 expandedSource: """
 struct Test {
-    var `class`: Class
+    var `class`: Class {
+        @available(*, unavailable)
+        get {
+            fatalError()
+        }
+    }
 
     /// => Class
     typealias Class = Test_types.__macro_class
 
     static let `class` = Column<Test_types.__macro_class>("class")
-    var `struct`: Int
+    var `struct`: Int {
+        @available(*, unavailable)
+        get {
+            fatalError()
+        }
+    }
 
     /// => Int
     typealias Struct = Test_types.__macro_struct
@@ -140,7 +158,7 @@ enum Test_types {
     typealias __macro_struct = Int
 }
 """,
-macros: schemaMacro
+macros: allMacro
         )
     }
 
@@ -154,7 +172,7 @@ enum Test {
 """,
 expandedSource: """
 enum Test {
-    @Column("Test_types") @EraseProperty
+    @EraseProperty @Column("Test_types")
     var value: Int
 }
 
@@ -162,9 +180,7 @@ enum Test_types {
     typealias __macro_value = Int
 }
 """,
-macros: [
-    "Schema": Schema.self,
-]
+macros: schemaMacro 
         )
     }
 }

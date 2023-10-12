@@ -24,19 +24,14 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             return []
         }
 
-        var attributes = [
+        return [
+            AttributeSyntax(TypeSyntax("EraseProperty")),
             AttributeSyntax("Column") {
                 LabeledExprSyntax(
                     expression: "\(namedDecl.name.trimmed.text)_types".makeLiteralSyntax()
                 )
             },
         ]
-
-        if declaration.is(EnumDeclSyntax.self) {
-            attributes.append(AttributeSyntax(TypeSyntax("EraseProperty")))
-        }
-
-        return attributes
     }
 
     // MARK: - Peer
