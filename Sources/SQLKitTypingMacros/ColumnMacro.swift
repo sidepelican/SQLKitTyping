@@ -14,8 +14,7 @@ public struct Column: PeerMacro {
         guard case .argumentList(let arguments) = node.arguments,
               let firstElement = arguments.first,
               let stringLiteral = firstElement.expression.as(StringLiteralExprSyntax.self),
-              stringLiteral.segments.count == 1,
-              case let .stringSegment(typePrefixString)? = stringLiteral.segments.first
+              let typePrefixString = stringLiteral.representedLiteralValue
         else {
             throw MessageError("@Column macro requires a string literal")
         }
