@@ -43,6 +43,20 @@ extension SQLPredicateBuilder {
     {
         return self.where(lhs, op, SQLBind.group(rhs))
     }
+    
+    @discardableResult
+    public func orWhere<S, E>(_ lhs: TypedSQLColumn<S, E>, _ op: SQLBinaryOperator, _ rhs: E) -> Self
+    where E: Encodable
+    {
+        return self.orWhere(lhs, op, SQLBind(rhs))
+    }
+
+    @discardableResult
+    public func orWhere<S, E>(_ lhs: TypedSQLColumn<S, E>, _ op: SQLBinaryOperator, _ rhs: [E]) -> Self
+    where E: Encodable
+    {
+        return self.orWhere(lhs, op, SQLBind.group(rhs))
+    }
 }
 
 extension SQLJoinBuilder {
