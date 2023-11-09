@@ -94,10 +94,11 @@ extension SQLColumnUpdateBuilder {
 }
 
 extension SchemaProtocol {
-    public static var all: SQLColumn {
-        SQLColumn(SQLLiteral.all)
+    public static var all: SQLAllColumn {
+        SQLAllColumn(table: Self.tableName)
     }
 
+    @available(*, deprecated, renamed: "all.withTable")
     public static var allWithTable: SQLColumn {
         SQLColumn(SQLLiteral.all, table: SQLIdentifier(Self.tableName))
     }
