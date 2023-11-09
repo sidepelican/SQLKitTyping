@@ -84,7 +84,7 @@ extension SQLJoinBuilder {
     }
 }
 
-extension SQLUpdateBuilder {
+extension SQLColumnUpdateBuilder {
     @discardableResult
     public func set<S, E>(_ column: TypedSQLColumn<S, E>, to bind: E) -> Self
     where E: Encodable
@@ -100,5 +100,15 @@ extension SchemaProtocol {
 
     public static var allWithTable: SQLColumn {
         SQLColumn(SQLLiteral.all, table: SQLIdentifier(Self.tableName))
+    }
+}
+
+extension SQLRow {
+    public func decode<D: Decodable>(typed column: TypedSQLColumn<some Any, D>) throws -> D {
+        try decode(column: column.name, as: D.self)
+    }
+
+    public func decode<D: Decodable>(typed column: TypedSQLColumn<some Any, D>, alias: String) throws -> D {
+        try decode(column: alias, as: D.self)
     }
 }
