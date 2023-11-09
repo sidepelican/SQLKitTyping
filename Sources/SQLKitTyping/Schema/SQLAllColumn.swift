@@ -10,6 +10,7 @@ public struct SQLAllColumn: SQLExpression {
         self.serializeTable = serializeTable
     }
 
+    @inlinable
     public var withTable: Self {
         Self(table: table,  serializeTable: true)
     }

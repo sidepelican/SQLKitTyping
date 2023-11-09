@@ -22,6 +22,7 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomSt
         SQLIdentifier(name).serialize(to: &serializer)
     }
 
+    @inlinable
     public var withTable: Self {
         Self(name, serializeTable: true)
     }
