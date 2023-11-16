@@ -54,11 +54,11 @@ extension SQLSelectBuilder {
         guard row != nil else { return }
 
         let parent = try await self
-            .where("id", .equal, database.select()
+            .where("id", .equal, SQLGroupExpression(database.select()
                 .column(parentIDColumn)
                 .from(RowSchema.self)
                 .where(RowSchema.id, .equal, row!.id)
-                .query
+                .query)
             )
             .first(decoding: Parent.self)
 
@@ -80,11 +80,11 @@ extension SQLSelectBuilder {
         // IN句でまとめて取得
         let parents = try await self
             .column(RowSchema.id.withTable, as: "_row_id")
-            .where("id", .in, database.select()
+            .where("id", .in, SQLGroupExpression(database.select()
                 .column(parentIDColumn)
                 .from(RowSchema.self)
                 .where(RowSchema.id, .in, rows.map(\.id))
-                .query
+                .query)
             )
             .all()
 
