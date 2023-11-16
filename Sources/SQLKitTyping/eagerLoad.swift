@@ -16,7 +16,7 @@ extension SQLDatabase {
         parentSchema: ParentSchema.Type
     ) async throws where  Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID {
         try await select()
-            .column(SQLLiteral.all)
+            .column(ParentSchema.all)
             .from(ParentSchema.tableName)
             .eagerLoad(into: &row, keyPath: keyPath, parentIDColumn: parentIDColumn)
     }
@@ -34,9 +34,9 @@ extension SQLDatabase {
         parentSchema: ParentSchema.Type
     ) async throws where  Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID  {
         try await select()
-            .column(SQLLiteral.all)
+            .column(ParentSchema.all.withTable)
             .from(ParentSchema.tableName)
-            .eagerLoad(into: &rows, keyPath: keyPath, parentIDColumn: parentIDColumn)
+            .eagerLoad(into: &rows, keyPath: keyPath, parentIDColumn: parentIDColumn, parentSchema: parentSchema)
     }
 }
 
@@ -69,23 +69,21 @@ extension SQLSelectBuilder {
     public func eagerLoad<
         Row: Identifiable,
         RowSchema: IDSchemaProtocol,
+        ParentSchema: IDSchemaProtocol,
         Parent: Decodable & Identifiable
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, Parent?>,
-        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>
-    ) async throws where Row.ID == RowSchema.ID {
+        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>,
+        parentSchema: ParentSchema.Type
+    ) async throws where Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID {
         if rows.isEmpty { return }
 
         // IN句でまとめて取得
         let parents = try await self
             .column(RowSchema.id.withTable, as: "_row_id")
-            .where("id", .in, SQLGroupExpression(database.select()
-                .column(parentIDColumn)
-                .from(RowSchema.self)
-                .where(RowSchema.id, .in, rows.map(\.id))
-                .query)
-            )
+            .join(RowSchema.self, on: ParentSchema.id, .equal, parentIDColumn)
+            .where(RowSchema.id.withTable, .in, rows.map(\.id))
             .all()
 
         // idごとに分配
