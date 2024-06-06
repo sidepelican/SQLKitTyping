@@ -59,7 +59,7 @@ public struct Test {
 """,
 expandedSource: """
 public struct Test {
-    @EraseProperty @Column("Test_types")
+    @EraseProperty @Column(namespace: "Test_types")
     public var fooBar: Int?
 }
 
@@ -172,7 +172,7 @@ enum Test {
 """,
 expandedSource: """
 enum Test {
-    @EraseProperty @Column("Test_types")
+    @EraseProperty @Column(namespace: "Test_types")
     var value: Int
 }
 

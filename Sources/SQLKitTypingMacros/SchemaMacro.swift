@@ -28,6 +28,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             AttributeSyntax(TypeSyntax("EraseProperty")),
             AttributeSyntax("Column") {
                 LabeledExprSyntax(
+                    label: "namespace",
                     expression: "\(namedDecl.name.trimmed.text)_types".makeLiteralSyntax()
                 )
             },
