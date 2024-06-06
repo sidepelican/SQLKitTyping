@@ -10,8 +10,8 @@ let package = Package(
         .library(name: "SQLKitTyping", targets: ["SQLKitTyping"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/sql-kit.git", from: "3.0.0"),
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+        .package(url: "https://github.com/vapor/sql-kit.git", from: "3.30.0"),
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
     ],
     targets: [
         .macro(

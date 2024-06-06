@@ -49,7 +49,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
         }
 
         return [
-            try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
+            DeclSyntax(try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
                 for member in declGroup.memberBlock.members {
                     if let def = ColumnDefinition(
                         decl: member.decl,
@@ -59,7 +59,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
                         "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
                     }
                 }
-            }.cast(DeclSyntax.self)
+            })
         ]
     }
 }

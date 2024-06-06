@@ -35,6 +35,50 @@ extension SQLSelectBuilder {
     }
 }
 
+public enum SQLNullsOrder: String {
+    case first = "FIRST"
+    case last = "LAST"
+}
+
+extension SQLPartialResultBuilder {
+    public func orderBy(_ column: TypedSQLColumn<some Any, some Comparable>, _ direction: SQLDirection) -> Self {
+        orderBy(SQLOrderBy(expression: column, direction: direction))
+    }
+
+    public func orderBy(_ column: TypedSQLColumn<some Any, (some Comparable)?>, _ direction: SQLDirection, nulls: SQLNullsOrder? = nil) -> Self {
+        if let nulls {
+            orderBy(SQLQueryString("\(SQLOrderBy(expression: column, direction: direction)) NULLS \(unsafeRaw: nulls.rawValue)"))
+        } else {
+            orderBy(SQLOrderBy(expression: column, direction: direction))
+        }
+    }
+}
+
+extension SQLQueryFetcher {
+    public func first<each S: SchemaProtocol, each V: Decodable>(
+        decodingColumns column: repeat TypedSQLColumn<each S, each V>
+    ) async throws -> (repeat each V)? {
+        if let partialBuilder = self as? (any SQLPartialResultBuilder & SQLQueryFetcher) {
+            return try await partialBuilder.limit(1).all(decodingColumns: repeat each column).first
+        } else {
+            return try await all(decodingColumns: repeat each column).first
+        }
+    }
+
+    public func all<each S: SchemaProtocol, each V: Decodable>(
+        decodingColumns column: repeat TypedSQLColumn<each S, each V>
+    ) async throws -> [(repeat each V)] {
+        let rows = try await self.all()
+
+        return try rows.map { row in
+            func rowDecode<C: Decodable>(row: any SQLRow, column: TypedSQLColumn<some Any, C>) throws -> C {
+                try row.decode(column: column.name, as: C.self)
+            }
+            return try (repeat rowDecode(row: row, column: each column))
+        }
+    }
+}
+
 extension SQLPredicateBuilder {
     @inlinable
     @discardableResult
@@ -92,6 +136,25 @@ extension SQLJoinBuilder {
         _ right: TypedSQLColumn<S, T>
     ) -> Self {
         self.join(SQLIdentifier(table.tableName), method: method, on: left.withTable, op, right.withTable)
+    }
+}
+
+extension SQLInsertBuilder {
+    @discardableResult
+    public func columnAndValues<S: SchemaProtocol, each E: Encodable & Sendable>(
+        _ columnAndValue: repeat (TypedSQLColumn<S, each E>, each E)
+    ) -> Self {
+        var columns: [any SQLExpression] = []
+        var values: [SQLBind] = []
+        func set(column: any SQLExpression, value: some (Encodable & Sendable)) {
+            columns.append(column)
+            values.append(SQLBind(value))
+        }
+        repeat set(column: (each columnAndValue).0, value: (each columnAndValue).1)
+
+        self.columns(columns)
+        self.values(values)
+        return self
     }
 }
 
