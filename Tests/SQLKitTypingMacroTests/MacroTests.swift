@@ -36,13 +36,13 @@ struct Test {
     }
 
     /// => Int
-    typealias Value = Test_types.__macro_value
+    typealias Value = Test_types.__value
 
-    static let value = Column<Test_types.__macro_value>("value")
+    static let value = Column<Test_types.__value>("value")
 }
 
 enum Test_types {
-    typealias __macro_value = Int
+    typealias __value = Int
 }
 """,
 macros: allMacro
@@ -64,7 +64,7 @@ public struct Test {
 }
 
 public enum Test_types {
-    public typealias __macro_fooBar = Int?
+    public typealias __fooBar = Int?
 }
 """,
 macros: [
@@ -137,9 +137,9 @@ struct Test {
     }
 
     /// => Class
-    typealias Class = Test_types.__macro_class
+    typealias Class = Test_types.__class
 
-    static let `class` = Column<Test_types.__macro_class>("class")
+    static let `class` = Column<Test_types.__class>("class")
     var `struct`: Int {
         @available(*, unavailable)
         get {
@@ -148,14 +148,14 @@ struct Test {
     }
 
     /// => Int
-    typealias Struct = Test_types.__macro_struct
+    typealias Struct = Test_types.__struct
 
-    static let `struct` = Column<Test_types.__macro_struct>("struct")
+    static let `struct` = Column<Test_types.__struct>("struct")
 }
 
 enum Test_types {
-    typealias __macro_class = Class
-    typealias __macro_struct = Int
+    typealias __class = Class
+    typealias __struct = Int
 }
 """,
 macros: allMacro
@@ -177,7 +177,7 @@ enum Test {
 }
 
 enum Test_types {
-    typealias __macro_value = Int
+    typealias __value = Int
 }
 """,
 macros: schemaMacro 
