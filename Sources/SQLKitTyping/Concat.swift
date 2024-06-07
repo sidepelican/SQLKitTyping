@@ -1,7 +1,7 @@
 import SQLKit
 
 @dynamicMemberLookup
-public struct Concat<L: Decodable, R: Decodable>: Decodable {
+public struct PropertyConcat<L: Decodable, R: Decodable>: Decodable {
     public init(left: L, right: R) {
         self.left = left
         self.right = right
@@ -70,28 +70,35 @@ public protocol PropertySQLExpression<Property>: Sendable {
     func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)
 }
 
-public struct TypedColumns<PropertyType: Decodable> {
-    public var columns: [any SQLExpression]
+fileprivate struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>: SQLExpression {
+    var base: Base
+    func serialize(to serializer: inout SQLSerializer) {
+        base.serializeAsPropertySQLExpression(to: &serializer)
+    }
 }
 
 @resultBuilder
-public struct RowBuilder {
+public struct PropertyBuilder {
+    public struct Result<PropertyType: Decodable> {
+        var columns: [any SQLExpression]
+    }
+
     public static func buildBlock<T>(_ component: T) -> T {
         component
     }
 
-    public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> TypedColumns<T.Property> {
-        TypedColumns(
+    public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> Result<T.Property> {
+        Result(
             columns: [PropertySQLExpressionAsSQLExpression(base: first)]
         )
     }
 
     public static func buildPartialBlock<Accumulated, Next: PropertySQLExpression>(
-        accumulated: TypedColumns<Accumulated>,
+        accumulated: Result<Accumulated>,
         next: Next
-    ) -> TypedColumns<Concat<Accumulated, Next.Property>>
+    ) -> Result<PropertyConcat<Accumulated, Next.Property>>
     {
-        TypedColumns(
+        Result(
             columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(base: next) as any SQLExpression)
         )
     }
@@ -136,15 +143,8 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLQu
     }
 }
 
-struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>: SQLExpression {
-    var base: Base
-    func serialize(to serializer: inout SQLSerializer) {
-        base.serializeAsPropertySQLExpression(to: &serializer)
-    }
-}
-
 extension SQLDatabase {
-    public func selectWithColumns<Row>(@RowBuilder build: () -> TypedColumns<Row>) -> SQLTypedSelectBuilder<Row> {
+    public func selectWithColumns<Row>(@PropertyBuilder build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
         builder.columns(build().columns)
         return builder
@@ -195,13 +195,13 @@ func playground(db: any SQLDatabase) async throws {
 }
 
 @Schema
-public struct UserTable: SchemaProtocol {
-    public static var tableName: String { "users" }
+struct UserTable: SchemaProtocol {
+    static var tableName: String { "users" }
 
-    public var id: Int
-    public var familyName: String
-    public var givenName: String
-    public var familyNameKana: String
-    public var givenNameKana: String
-    public var tel: String
+    var id: Int
+    var familyName: String
+    var givenName: String
+    var familyNameKana: String
+    var givenNameKana: String
+    var tel: String
 }
