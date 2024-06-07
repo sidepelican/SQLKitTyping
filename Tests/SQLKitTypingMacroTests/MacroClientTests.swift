@@ -2,7 +2,7 @@ import XCTest
 import SQLKitTyping
 
 @Schema
-fileprivate enum Test: SchemaProtocol {
+fileprivate enum TestTable: SchemaProtocol {
     static var tableName: String { "tests" }
 
     var foo: Int
@@ -10,8 +10,8 @@ fileprivate enum Test: SchemaProtocol {
 }
 
 fileprivate struct S {
-    var foo: Test.Foo
-    var bar: Test.Bar
+    var foo: TestTable.Foo
+    var bar: TestTable.Bar
 }
 
 enum Foo {

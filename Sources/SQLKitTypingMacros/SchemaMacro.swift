@@ -52,7 +52,11 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
         }
 
         func buildColumnType(def: ColumnDefinition) -> DeclSyntax {
-            let sqlColumnName = "\(namedDecl.name.trimmed)_\(def.columnName)"
+            let firstName = namedDecl.name.trimmed.description
+                .trimmingSuffix("Schema")
+                .trimmingSuffix("Table")
+            let sqlColumnName = "\(firstName)_\(def.columnName)"
+
             return """
             \(def.modifiers)struct \(raw: def.typealiasName): TypedSQLColumn, PropertySQLExpression {
                 \(def.modifiers)typealias Schema = \(namedDecl.name.trimmed)
@@ -89,5 +93,14 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
                 }
             })
         ]
+    }
+}
+
+extension StringProtocol {
+    fileprivate func trimmingSuffix(_ pattern: String) -> SubSequence {
+        if self.hasSuffix(pattern) {
+            return self[startIndex..<index(endIndex, offsetBy: -pattern.count)]
+        }
+        return self[...]
     }
 }
