@@ -24,6 +24,47 @@ public struct Concat<L: Decodable, R: Decodable>: Decodable {
     }
 }
 
+public struct PropertyNullableColumn<Base: PropertySQLExpression>: PropertySQLExpression where Base.Property: Decodable {
+    @inlinable
+    public init(base: Base) {
+        self.base = base
+    }
+
+    @dynamicMemberLookup
+    public struct Property: Decodable {
+        public var wrapped: Base.Property?
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            do {
+                wrapped = try container.decode(Base.Property.self)
+            } catch let error as DecodingError {
+                if case .valueNotFound = error {
+                    wrapped = nil
+                }
+            }
+        }
+
+        public subscript<T>(dynamicMember keyPath: KeyPath<Base.Property, T>) -> T? {
+            wrapped?[keyPath: keyPath]
+        }
+    }
+
+    @usableFromInline
+    var base: Base
+
+    public func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)  {
+        base.serializeAsPropertySQLExpression(to: &serializer)
+    }
+}
+
+extension PropertySQLExpression where Self.Property: Decodable {
+    @inlinable
+    public var nullable: PropertyNullableColumn<Self> {
+        PropertyNullableColumn(base: self)
+    }
+}
+
 public protocol PropertySQLExpression<Property>: Sendable {
     associatedtype Property
     func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)
@@ -103,7 +144,6 @@ struct PropertySQLExpressionAsSQLExpression: SQLExpression {
 }
 
 extension SQLDatabase {
-    /// Create a new ``SQLSelectBuilder``.
     public func selectWithColumns<Row>(@RowBuilder build: () -> TypedColumns<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
         builder.columns(build().columns.map {
@@ -143,7 +183,7 @@ func playground(db: any SQLDatabase) async throws {
 
     let row = try await db.selectWithColumns {
         UserTable.familyName
-        UserTable.givenName
+        UserTable.givenName.nullable
 //        email(SQLColumn("email", table: "emails"))
     }
     .from(UserTable.tableName)
@@ -152,7 +192,7 @@ func playground(db: any SQLDatabase) async throws {
     .first()!
 
     print(row.familyName)
-    print(row.givenName)
+    print(row.givenName ?? "null")
 //    print(row.email)
 }
 
