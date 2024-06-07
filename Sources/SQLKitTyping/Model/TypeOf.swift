@@ -8,6 +8,10 @@
         self.wrappedValue = wrappedValue
     }
 
+    public init(wrappedValue: Value, _ column: some TypedSQLColumn<Schema, Value>) {
+        self.init(wrappedValue: wrappedValue)
+    }
+
     private var _wrappedValue: Value?
     public var wrappedValue: Value {
         get {
@@ -54,6 +58,10 @@ extension TypeOf: Sendable where Value: Sendable {}
 //    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
     public init(wrappedValue: Value?) {
         self.wrappedValue = wrappedValue
+    }
+    
+    public init(wrappedValue: Value?, _ column: some TypedSQLColumn<Schema, Value>) {
+        self.init(wrappedValue: wrappedValue)
     }
 
     public var wrappedValue: Value?
