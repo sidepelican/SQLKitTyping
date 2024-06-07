@@ -71,7 +71,7 @@ public protocol PropertySQLExpression<Property>: Sendable {
 }
 
 public struct TypedColumns<PropertyType: Decodable> {
-    public var columns: [any PropertySQLExpression]
+    public var columns: [any SQLExpression]
 }
 
 @resultBuilder
@@ -82,7 +82,7 @@ public struct RowBuilder {
 
     public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> TypedColumns<T.Property> {
         TypedColumns(
-            columns: [first]
+            columns: [PropertySQLExpressionAsSQLExpression(base: first)]
         )
     }
 
@@ -92,7 +92,7 @@ public struct RowBuilder {
     ) -> TypedColumns<Concat<Accumulated, Next.Property>>
     {
         TypedColumns(
-            columns: accumulated.columns + CollectionOfOne(next as any PropertySQLExpression)
+            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(base: next) as any SQLExpression)
         )
     }
 }
@@ -136,8 +136,8 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLQu
     }
 }
 
-struct PropertySQLExpressionAsSQLExpression: SQLExpression {
-    var base: any PropertySQLExpression
+struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>: SQLExpression {
+    var base: Base
     func serialize(to serializer: inout SQLSerializer) {
         base.serializeAsPropertySQLExpression(to: &serializer)
     }
@@ -146,9 +146,7 @@ struct PropertySQLExpressionAsSQLExpression: SQLExpression {
 extension SQLDatabase {
     public func selectWithColumns<Row>(@RowBuilder build: () -> TypedColumns<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
-        builder.columns(build().columns.map {
-            PropertySQLExpressionAsSQLExpression(base: $0)
-        })
+        builder.columns(build().columns)
         return builder
     }
 }
