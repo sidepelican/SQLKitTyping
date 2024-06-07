@@ -6,6 +6,13 @@ public protocol TypedSQLColumn<Schema, Value>: SQLExpression, Sendable {
     var name: String { get }
 }
 
+extension TypedSQLColumn {
+    @inlinable
+    public func serialize(to serializer: inout SQLSerializer) {
+        SQLIdentifier(name).serialize(to: &serializer)
+    }
+}
+
 public struct LegacyTypedSQLColumn<Schema: SchemaProtocol, Value: Codable & Sendable>: TypedSQLColumn, CustomStringConvertible {
     public var name: String
     public var serializeTable: Bool

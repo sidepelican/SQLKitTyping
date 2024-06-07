@@ -49,11 +49,9 @@ public struct Column: PeerMacro {
                 leadingTrivia: .docLineComment("/// => \(def.columnType.description)").appending(.newline),
                 modifiers: def.modifiers.trimmed,
                 name: "\(raw: def.columnTypeName)",
-                initializer: TypeInitializerClauseSyntax(
-                    value: aliasName
-                )
+                initializer: TypeInitializerClauseSyntax(value: "\(aliasName).Value" as TypeSyntax)
             )),
-            "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = Column<\(aliasName)>(\"\(raw: def.columnName)\")",
+            "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = \(aliasName)()",
         ]
     }
 }
