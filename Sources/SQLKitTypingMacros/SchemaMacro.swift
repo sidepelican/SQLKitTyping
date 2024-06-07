@@ -59,9 +59,6 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
                         in: context,
                         emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
                     ) {
-                        try StructDeclSyntax("\(def.modifiers)struct p_\(def.varIdentifier): Decodable") {
-                            "\(def.modifiers)var \(def.varIdentifier): \(def.columnType)"
-                        }
                         "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
                     }
                 }
