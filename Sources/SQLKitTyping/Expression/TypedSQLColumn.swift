@@ -43,7 +43,7 @@ extension SchemaProtocol {
 }
 
 public struct TypedSQLColumnWithTable<Schema: SchemaProtocol, Value: Codable & Sendable>: TypedSQLColumn {
-    public init(base: some TypedSQLColumn) {
+    public init(base: some TypedSQLColumn<Schema, Value>) {
         self.name = base.name
     }
 
