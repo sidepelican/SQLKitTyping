@@ -1,4 +1,5 @@
 public protocol IDSchemaProtocol: SchemaProtocol {
     associatedtype ID: IDType
-    static var id: Column<ID> { get }
+    associatedtype IDColumn: TypedSQLColumn<Self, ID>
+    static var id: IDColumn { get }
 }

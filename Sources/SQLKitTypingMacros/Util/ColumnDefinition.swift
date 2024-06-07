@@ -12,7 +12,7 @@ struct ColumnDefinition {
     var columnName: String // class
     var columnTypeName: String // Class_
     var columnType: TypeSyntax // Class
-    var typealiasName: String // __macro_class
+    var typealiasName: String // class
     var modifiers: DeclModifierListSyntax // public
 
     init?(
@@ -46,7 +46,7 @@ struct ColumnDefinition {
         }
         self.columnType = columnType
         self.columnTypeName = columnName.firstUpper
-        typealiasName = "__macro_\(columnName)"
+        typealiasName = columnName
         modifiers = varDecl.modifiers
     }
 }

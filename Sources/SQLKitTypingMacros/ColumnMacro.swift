@@ -26,6 +26,7 @@ public struct Column: PeerMacro {
     }
 
     // MARK: - Peer
+
     public static func expansion(
         of node: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
@@ -41,7 +42,7 @@ public struct Column: PeerMacro {
             return []
         }
 
-        let aliasName = "\(arguments.namespace).\(def.typealiasName)"
+        let aliasName = "\(raw: arguments.namespace).\(raw: def.typealiasName)" as TypeSyntax
 
         return [
             DeclSyntax(TypeAliasDeclSyntax(
@@ -49,11 +50,10 @@ public struct Column: PeerMacro {
                 modifiers: def.modifiers.trimmed,
                 name: "\(raw: def.columnTypeName)",
                 initializer: TypeInitializerClauseSyntax(
-                    value: "\(raw: aliasName)" as TypeSyntax
+                    value: aliasName
                 )
             )),
-
-            "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = Column<\(raw: aliasName)>(\"\(raw: def.columnName)\")",
+            "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = Column<\(aliasName)>(\"\(raw: def.columnName)\")",
         ]
     }
 }

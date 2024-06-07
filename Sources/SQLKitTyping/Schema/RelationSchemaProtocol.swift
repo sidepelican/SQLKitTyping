@@ -7,11 +7,11 @@ public protocol RelationSchemaProtocol: SchemaProtocol {
 public struct PivotJoinRelation<RelationSchema: SchemaProtocol,
                                 FromID: IDType,
                                 ToID: IDType> {
-    public var from: TypedSQLColumn<RelationSchema, FromID>
-    public var to: TypedSQLColumn<RelationSchema, ToID>
+    public var from: any TypedSQLColumn<RelationSchema, FromID>
+    public var to: any TypedSQLColumn<RelationSchema, ToID>
     public init(
-        from: TypedSQLColumn<RelationSchema, FromID>,
-        to: TypedSQLColumn<RelationSchema, ToID>
+        from: any TypedSQLColumn<RelationSchema, FromID>,
+        to: any TypedSQLColumn<RelationSchema, ToID>
     ) {
         self.from = from
         self.to = to

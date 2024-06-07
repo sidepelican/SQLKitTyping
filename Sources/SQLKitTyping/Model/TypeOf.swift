@@ -1,6 +1,6 @@
 @propertyWrapper public struct TypeOf<Schema: SchemaProtocol, Value>: CustomStringConvertible {
 //    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
-    public init(_ column: TypedSQLColumn<Schema, Value>) {
+    public init(_ column: some TypedSQLColumn<Schema, Value>) {
     }
 
 //    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
@@ -48,7 +48,7 @@ extension TypeOf: Sendable where Value: Sendable {}
 
 @propertyWrapper public struct OptionalTypeOf<Schema: SchemaProtocol, Value>: CustomStringConvertible {
 //    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")
-    public init(_ column: TypedSQLColumn<Schema, Value>) {
+    public init(_ column: some TypedSQLColumn<Schema, Value>) {
     }
 
 //    @available(*, deprecated, message: "Use @Schema macro and use FooTable.Bar")

@@ -12,7 +12,7 @@ extension SQLDatabase {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, Parent?>,
-        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>,
+        parentIDColumn: some TypedSQLColumn<RowSchema, Parent.ID>,
         parentSchema: ParentSchema.Type
     ) async throws where  Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID {
         try await select()
@@ -30,7 +30,7 @@ extension SQLDatabase {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, Parent?>,
-        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>,
+        parentIDColumn: some TypedSQLColumn<RowSchema, Parent.ID>,
         parentSchema: ParentSchema.Type
     ) async throws where  Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID  {
         try await select()
@@ -49,7 +49,7 @@ extension SQLSelectBuilder {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, Parent?>,
-        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>
+        parentIDColumn: some TypedSQLColumn<RowSchema, Parent.ID>
     ) async throws where Row.ID == RowSchema.ID {
         guard row != nil else { return }
 
@@ -74,7 +74,7 @@ extension SQLSelectBuilder {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, Parent?>,
-        parentIDColumn: TypedSQLColumn<RowSchema, Parent.ID>,
+        parentIDColumn: some TypedSQLColumn<RowSchema, Parent.ID>,
         parentSchema: ParentSchema.Type
     ) async throws where Row.ID == RowSchema.ID, Parent.ID == ParentSchema.ID {
         if rows.isEmpty { return }
@@ -110,7 +110,7 @@ extension SQLDatabase {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [some Decodable]>,
-        column: TypedSQLColumn<ChildrenSchema, Row.ID>
+        column: some TypedSQLColumn<ChildrenSchema, Row.ID>
     ) async throws where Row.ID: Encodable {
         try await select()
             .column(SQLLiteral.all)
@@ -125,7 +125,7 @@ extension SQLDatabase {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [some Decodable]>,
-        column: TypedSQLColumn<ChildrenSchema, Row.ID>
+        column: some TypedSQLColumn<ChildrenSchema, Row.ID>
     ) async throws where Row.ID: Codable {
         try await select()
             .column(SQLLiteral.all)
@@ -142,7 +142,7 @@ extension SQLSelectBuilder {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Child]>,
-        column: TypedSQLColumn<some SchemaProtocol, Row.ID>
+        column: some TypedSQLColumn<some SchemaProtocol, Row.ID>
     ) async throws where Row.ID: Encodable {
         guard row != nil else { return }
 
@@ -160,7 +160,7 @@ extension SQLSelectBuilder {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Child]>,
-        column: TypedSQLColumn<some SchemaProtocol, Row.ID>
+        column: some TypedSQLColumn<some SchemaProtocol, Row.ID>
     ) async throws where Row.ID: Codable {
         if rows.isEmpty { return }
 
@@ -307,7 +307,7 @@ extension SQLSelectBuilder {
     >(
         into row: inout Row?,
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        toIDColumn: TypedSQLColumn<some IDSchemaProtocol, ToID>,
+        toIDColumn: some TypedSQLColumn<some IDSchemaProtocol, ToID>,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
     ) async throws where Row.ID == FromID {
         guard row != nil else { return }
@@ -330,7 +330,7 @@ extension SQLSelectBuilder {
     >(
         into rows: inout [Row],
         keyPath: WritableKeyPath<Row, [Decoding]>,
-        toIDColumn: TypedSQLColumn<some IDSchemaProtocol, ToID>,
+        toIDColumn: some TypedSQLColumn<some IDSchemaProtocol, ToID>,
         relation: PivotJoinRelation<RelationSchema, FromID, ToID>
     ) async throws where Row.ID == FromID {
         if rows.isEmpty { return }

@@ -6,6 +6,7 @@ import SwiftSyntaxMacros
 public struct Schema: MemberAttributeMacro, PeerMacro {
 
     // MARK: - MemberAttributeMacro
+
     public static func expansion(
         of node: AttributeSyntax,
         attachedTo declaration: some DeclGroupSyntax,
@@ -36,6 +37,7 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
     }
 
     // MARK: - Peer
+
     public static func expansion(
         of node: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
@@ -57,6 +59,9 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
                         in: context,
                         emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
                     ) {
+                        try StructDeclSyntax("\(def.modifiers)struct p_\(def.varIdentifier): Decodable") {
+                            "\(def.modifiers)var \(def.varIdentifier): \(def.columnType)"
+                        }
                         "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
                     }
                 }

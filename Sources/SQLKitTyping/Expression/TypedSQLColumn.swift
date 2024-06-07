@@ -1,6 +1,12 @@
 import SQLKit
 
-public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomStringConvertible, Sendable {
+public protocol TypedSQLColumn<Schema, Value>: SQLExpression, Sendable {
+    associatedtype Schema: SchemaProtocol
+    associatedtype Value: Codable & Sendable
+    var name: String { get }
+}
+
+public struct LegacyTypedSQLColumn<Schema: SchemaProtocol, Value: Codable & Sendable>: TypedSQLColumn, CustomStringConvertible {
     public var name: String
     public var serializeTable: Bool
 
@@ -22,11 +28,6 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomSt
         SQLIdentifier(name).serialize(to: &serializer)
     }
 
-    @inlinable
-    public var withTable: Self {
-        Self(name, serializeTable: true)
-    }
-
     @available(*, deprecated, renamed: "name", message: "deprecated because this is not RawRepresentable")
     public var rawValue: String {
         name
@@ -38,5 +39,25 @@ public struct TypedSQLColumn<Schema: SchemaProtocol, T>: SQLExpression, CustomSt
 }
 
 extension SchemaProtocol {
-    public typealias Column<T> = TypedSQLColumn<Self, T> where T: Decodable
+    public typealias Column<T: Codable> = LegacyTypedSQLColumn<Self, T>
+}
+
+public struct TypedSQLColumnWithTable<Schema: SchemaProtocol, Value: Codable & Sendable>: TypedSQLColumn {
+    public init(base: some TypedSQLColumn) {
+        self.name = base.name
+    }
+
+    public var name: String
+
+    public func serialize(to serializer: inout SQLSerializer) {
+        SQLIdentifier(Schema.tableName).serialize(to: &serializer)
+        serializer.write(".")
+        SQLIdentifier(name).serialize(to: &serializer)
+    }
+}
+
+extension TypedSQLColumn {
+    public var withTable: TypedSQLColumnWithTable<Schema, Value> {
+        TypedSQLColumnWithTable(base: self)
+    }
 }
