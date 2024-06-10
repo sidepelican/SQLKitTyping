@@ -86,23 +86,24 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                 .trimmingSuffix("Schema")
                 .trimmingSuffix("Table")
             let sqlColumnName = "\(firstName)_\(def.columnName)"
+            let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
 
             return """
-            \(def.modifiers)struct \(raw: def.typealiasName): TypedSQLColumn, PropertySQLExpression {
-                \(def.modifiers)typealias Schema = \(namedDecl.name.trimmed)
-                \(def.modifiers)typealias Value = \(def.columnType)
+            \(modifiers)struct \(raw: def.typealiasName): TypedSQLColumn, PropertySQLExpression {
+                \(modifiers)typealias Schema = \(namedDecl.name.trimmed)
+                \(modifiers)typealias Value = \(def.columnType)
 
-                \(def.modifiers)var name: String { "\(raw: def.columnName)" }
+                \(modifiers)var name: String { "\(raw: def.columnName)" }
 
                 @inlinable
-                \(def.modifiers)func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
+                \(modifiers)func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
                     SQLAlias(SQLColumn(name, table: Schema.tableName), as: "\(raw: sqlColumnName)")
                         .serialize(to: &serializer)
                 }
 
-                \(def.modifiers)struct Property: Decodable {
-                    \(def.modifiers)var \(def.varIdentifier): \(def.columnType)
-                    \(def.modifiers)enum CodingKeys: String, CodingKey {
+                \(modifiers)struct Property: Decodable {
+                    \(modifiers)var \(def.varIdentifier): \(def.columnType)
+                    \(modifiers)enum CodingKeys: String, CodingKey {
                         case \(def.varIdentifier) = "\(raw: sqlColumnName)"
                     }
                 }
@@ -115,7 +116,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             let properties = try MemberBlockItemListSyntax {
                 for def in columnDefs {
                     try VariableDeclSyntax(
-                        "\(def.modifiers)var \(def.varIdentifier): \(def.columnType)"
+                        "\(def.modifiers.trimmed) var \(def.varIdentifier): \(def.columnType)"
                     ).with(\.trailingTrivia, .newline)
                 }
             }

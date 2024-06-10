@@ -157,6 +157,14 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLTy
 }
 
 extension SQLDatabase {
+    @inlinable
+    public func selectWithColumn<Expr: PropertySQLExpression>(_ column: Expr) -> SQLTypedSelectBuilder<Expr.Property> {
+        let builder = SQLTypedSelectBuilder<Expr.Property>(on: self)
+        builder.column(PropertySQLExpressionAsSQLExpression(column))
+        return builder
+    }
+
+    @inlinable
     public func selectWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
         builder.columns(build().columns)
@@ -212,13 +220,13 @@ func playground(db: any SQLDatabase) async throws {
 }
 
 @Schema
-struct UserTable: SchemaProtocol {
-    static var tableName: String { "users" }
+package struct UserTable: SchemaProtocol {
+    package static var tableName: String { "users" }
 
-    var id: Int
-    var familyName: String
-    var givenName: String
-    var familyNameKana: String
-    var givenNameKana: String
-    var tel: String
+    package var id: Int
+    package var familyName: String
+    package var givenName: String
+    package var familyNameKana: String
+    package var givenNameKana: String
+    package var tel: String
 }
