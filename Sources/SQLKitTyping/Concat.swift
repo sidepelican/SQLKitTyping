@@ -6,13 +6,16 @@ public struct PropertyConcat<L: Decodable, R: Decodable>: Decodable {
         self.left = left
         self.right = right
     }
-    private var left: L
-    private var right: R
+    
+    @usableFromInline var left: L
+    @usableFromInline var right: R
 
+    @inlinable
     public subscript<T>(dynamicMember keyPath: KeyPath<L, T>) -> T {
         left[keyPath: keyPath]
     }
 
+    @inlinable
     public subscript<T>(dynamicMember keyPath: KeyPath<R, T>) -> T {
         right[keyPath: keyPath]
     }
