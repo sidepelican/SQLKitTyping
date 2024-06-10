@@ -157,6 +157,11 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLTy
 }
 
 extension SQLDatabase {
+    @available(*, unavailable, message: ".withTable cannot use here")
+    public func selectWithColumn(_ column: SQLAllColumn) -> SQLSelectBuilder {
+        fatalError()
+    }
+
     @inlinable
     public func selectWithColumn<Expr: PropertySQLExpression>(_ column: Expr) -> SQLTypedSelectBuilder<Expr.Property> {
         let builder = SQLTypedSelectBuilder<Expr.Property>(on: self)
