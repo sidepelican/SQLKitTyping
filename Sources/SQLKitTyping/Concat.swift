@@ -6,7 +6,7 @@ public struct PropertyConcat<L: Decodable, R: Decodable>: Decodable {
         self.left = left
         self.right = right
     }
-    
+
     @usableFromInline var left: L
     @usableFromInline var right: R
 
@@ -73,9 +73,13 @@ public protocol PropertySQLExpression<Property>: Sendable {
     func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)
 }
 
-fileprivate struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>: SQLExpression {
-    var base: Base
-    func serialize(to serializer: inout SQLSerializer) {
+public struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>: SQLExpression {
+    @inlinable
+    public init(_ base: Base) {
+        self.base = base
+    }
+    public var base: Base
+    public func serialize(to serializer: inout SQLSerializer) {
         base.serializeAsPropertySQLExpression(to: &serializer)
     }
 }
@@ -83,7 +87,7 @@ fileprivate struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpress
 @resultBuilder
 public struct PropertyBuilder {
     public struct Result<PropertyType: Decodable> {
-        var columns: [any SQLExpression]
+        public var columns: [any SQLExpression]
     }
 
     public static func buildBlock<T>(_ component: T) -> T {
@@ -92,7 +96,7 @@ public struct PropertyBuilder {
 
     public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> Result<T.Property> {
         Result(
-            columns: [PropertySQLExpressionAsSQLExpression(base: first)]
+            columns: [PropertySQLExpressionAsSQLExpression(first)]
         )
     }
 
@@ -102,27 +106,16 @@ public struct PropertyBuilder {
     ) -> Result<PropertyConcat<Accumulated, Next.Property>>
     {
         Result(
-            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(base: next) as any SQLExpression)
+            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(next) as any SQLExpression)
         )
     }
 }
 
-public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLQueryFetcher, SQLSubqueryClauseBuilder {
-    public var select: SQLSelect
+public protocol SQLTypedQueryFetcher<Row>: SQLQueryFetcher {
+    associatedtype Row: Decodable
+}
 
-    public var database: any SQLDatabase
-
-    @inlinable
-    public var query: any SQLExpression {
-        self.select
-    }
-
-    @inlinable
-    public init(on database: any SQLDatabase) {
-        self.select = .init()
-        self.database = database
-    }
-
+extension SQLTypedQueryFetcher {
     public func first(
         prefix: String? = nil,
         keyDecodingStrategy: SQLRowDecoder.KeyDecodingStrategy = .useDefaultKeys,
@@ -146,6 +139,23 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLQu
     }
 }
 
+public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLTypedQueryFetcher, SQLSubqueryClauseBuilder {
+    public var select: SQLSelect
+
+    public var database: any SQLDatabase
+
+    @inlinable
+    public var query: any SQLExpression {
+        self.select
+    }
+
+    @inlinable
+    public init(on database: any SQLDatabase) {
+        self.select = .init()
+        self.database = database
+    }
+}
+
 extension SQLDatabase {
     public func selectWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
@@ -154,43 +164,47 @@ extension SQLDatabase {
     }
 }
 
-//@freestanding(declaration)
-//macro SQLPartialDecodeType(_ dic: [String: any Decodable.Type], name: String? = nil)
+public final class SQLTypedReturningResultBuilder<Row: Decodable>: SQLTypedQueryFetcher {
+    public var query: any SQLExpression
+    public var database: any SQLDatabase
+    @usableFromInline
+    init(_ builder: some SQLReturningBuilder) {
+        self.query = builder.query
+        self.database = builder.database
+    }
+}
+
+extension SQLReturningBuilder {
+    @inlinable
+    public func returning<Expr: PropertySQLExpression>(_ column: Expr) -> SQLTypedReturningResultBuilder<Expr.Property> {
+        self.returning = .init([PropertySQLExpressionAsSQLExpression(column)])
+        return SQLTypedReturningResultBuilder(self)
+    }
+
+    @inlinable
+    public func returningWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedReturningResultBuilder<Row> {
+        self.returning = .init(build().columns)
+        return SQLTypedReturningResultBuilder(self)
+    }
+}
 
 func playground(db: any SQLDatabase) async throws {
-//    #SQLPartialDecodeType(["email": String.self])
-//    // マクロで展開
-//    struct email: PropertySQLExpression {
-//        init(_ expr: any SQLExpression) {
-//            self.expr = expr
-//        }
-//        var expr: any SQLExpression
-//        struct Property: Decodable {
-//            var email: String
-//            enum CodingKeys: String, CodingKey {
-//                case email = "email"
-//            }
-//        }
-//        @inlinable
-//        func serialize(to serializer: inout SQLSerializer) {
-//            SQLAlias(expr, as: "email").serialize(to: &serializer)
-//        }
-//
-//        func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)  {
-//            SQLAlias(expr, as: "email").serialize(to: &serializer)
-//        }
-//    }
-//    // マクロで展開ここまで
+//    #SQLPartialDecodeType(name: "Email", type: String.self)
+//    print(Email.self)
 
     let row = try await db.selectWithColumns {
         UserTable.all
-//        UserTable.givenName.nullable
+        UserTable.givenName.nullable
 //        email(SQLColumn("email", table: "emails"))
     }
-    .from(UserTable.tableName)
+    .from(UserTable.self)
     .join("emails", on: UserTable.id.withTable, .equal, SQLColumn("userID", table: "emails"))
     .where(UserTable.id, .equal, 123)
     .first()!
+
+    let row2 = try await db.insert(into: UserTable.self)
+        .returning(UserTable.tel)
+        .first()?.tel
 
     print(row.familyName)
     print(row.givenName ?? "null")
