@@ -27,7 +27,7 @@ extension SQLDatabase {
     }
 }
 
-extension SQLSelectBuilder {
+extension SQLSubqueryClauseBuilder {
     @inlinable
     @discardableResult
     public func from<Schema: SchemaProtocol>(_ schema: Schema.Type) -> Self {
