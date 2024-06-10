@@ -147,7 +147,7 @@ public final class SQLTypedSelectBuilder<Row: Decodable>: SQLQueryBuilder, SQLQu
 }
 
 extension SQLDatabase {
-    public func selectWithColumns<Row>(@PropertyBuilder build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
+    public func selectWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
         let builder = SQLTypedSelectBuilder<Row>(on: self)
         builder.columns(build().columns)
         return builder
