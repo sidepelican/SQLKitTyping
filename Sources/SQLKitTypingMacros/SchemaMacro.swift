@@ -1,4 +1,3 @@
-import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -113,7 +112,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
 
         func buildAllType() throws -> DeclSyntax {
             let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
-            let properties = try  MemberBlockItemListSyntax {
+            let properties = try MemberBlockItemListSyntax {
                 for def in columnDefs {
                     try VariableDeclSyntax(
                         "\(def.modifiers)var \(def.varIdentifier): \(def.columnType)"

@@ -1,4 +1,3 @@
-import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
@@ -17,7 +16,7 @@ public struct Column: PeerMacro {
             if argument.label?.text == "namespace" {
                 let literal = argument.expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
                 guard let literal else {
-                    throw MessageError("Unexpected literal.")
+                    throw MessageError("StringLiteral expected.")
                 }
                 namespace = literal
             }
