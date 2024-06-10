@@ -3,7 +3,29 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct Schema: MemberAttributeMacro, PeerMacro {
+public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
+
+    // MARK: - MemberMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+            return []
+        }
+
+        return [
+            DeclSyntax(TypeAliasDeclSyntax(
+                modifiers: declaration.modifiers.trimmed,
+                name: "All",
+                initializer: TypeInitializerClauseSyntax(value: "\(namedDecl.name.trimmed)_types.__all.Property" as TypeSyntax)
+            )),
+            "\(declaration.modifiers.adding(keyword: .static))let all = \(namedDecl.name.trimmed)_types.__all()",
+        ]
+    }
 
     // MARK: - MemberAttributeMacro
 
@@ -51,6 +73,15 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             return []
         }
 
+
+        let columnDefs = declGroup.memberBlock.members.compactMap {
+            ColumnDefinition(
+                decl: $0 .decl,
+                in: context,
+                emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
+            )
+        }
+
         func buildColumnType(def: ColumnDefinition) -> DeclSyntax {
             let firstName = namedDecl.name.trimmed.description
                 .trimmingSuffix("Schema")
@@ -80,16 +111,41 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             """
         }
 
+        func buildAllType() throws -> DeclSyntax {
+            let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
+            let properties = try  MemberBlockItemListSyntax {
+                for def in columnDefs {
+                    try VariableDeclSyntax(
+                        "\(def.modifiers)var \(def.varIdentifier): \(def.columnType)"
+                    ).with(\.trailingTrivia, .newline)
+                }
+            }
+            return """
+            \(modifiers)struct __all: PropertySQLExpression {
+                \(modifiers)typealias Schema = \(namedDecl.name.trimmed)
+
+                @inlinable
+                \(modifiers)var withTable: SQLAllColumn {
+                    SQLAllColumn(table: Schema.tableName, serializeTable: true)
+                }
+
+                @inlinable
+                \(modifiers)func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
+                    withTable.serialize(to: &serializer)
+                }
+
+                \(modifiers)struct Property: Decodable {
+                    \(properties)
+                }
+            }
+            """
+        }
+
         return [
             DeclSyntax(try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
-                for member in declGroup.memberBlock.members {
-                    if let def = ColumnDefinition(
-                        decl: member.decl,
-                        in: context,
-                        emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
-                    ) {
-                        buildColumnType(def: def)
-                    }
+                try buildAllType()
+                for def in columnDefs {
+                    buildColumnType(def: def)
                 }
             })
         ]

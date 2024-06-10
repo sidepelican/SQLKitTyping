@@ -180,8 +180,8 @@ func playground(db: any SQLDatabase) async throws {
 //    // マクロで展開ここまで
 
     let row = try await db.selectWithColumns {
-        UserTable.familyName
-        UserTable.givenName.nullable
+        UserTable.all
+//        UserTable.givenName.nullable
 //        email(SQLColumn("email", table: "emails"))
     }
     .from(UserTable.tableName)

@@ -1,5 +1,6 @@
 @_exported import SQLKit
 
+@attached(member, names: named(All), named(all))
 @attached(memberAttribute)
 @attached(peer, names: suffixed(_types))
 public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
