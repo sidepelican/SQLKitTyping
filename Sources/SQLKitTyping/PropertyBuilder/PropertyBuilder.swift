@@ -18,8 +18,7 @@ for i in 2...12 {
 
 @resultBuilder
 public struct PropertyBuilder {
-    public struct Result<each V: Decodable> {
-        typealias Accumulated = (repeat each V)
+    public struct Result<T: Decodable> {
         public var columns: [any SQLExpression]
     }
 
