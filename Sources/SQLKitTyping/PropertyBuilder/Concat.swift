@@ -1,31 +1,49 @@
 import SQLKit
 
-@dynamicMemberLookup
-public struct PropertyConcat<L: Decodable, R: Decodable>: Decodable {
-    public init(left: L, right: R) {
-        self.left = left
-        self.right = right
-    }
+//@dynamicMemberLookup
+//public struct PropertyConcat<L: Decodable, R: Decodable>: Decodable {
+//    public init(left: L, right: R) {
+//        self.left = left
+//        self.right = right
+//    }
+//
+//    @usableFromInline var left: L
+//    @usableFromInline var right: R
+//
+//    @inlinable
+//    public subscript<T>(dynamicMember keyPath: KeyPath<L, T>) -> T {
+//        left[keyPath: keyPath]
+//    }
+//
+//    @inlinable
+//    public subscript<T>(dynamicMember keyPath: KeyPath<R, T>) -> T {
+//        right[keyPath: keyPath]
+//    }
+//
+//    public init(from decoder: any Decoder) throws {
+//        let container = try decoder.singleValueContainer()
+//        self.left = try container.decode(L.self)
+//        self.right = try container.decode(R.self)
+//    }
+//}
 
-    @usableFromInline var left: L
-    @usableFromInline var right: R
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<L, T>) -> T {
-        left[keyPath: keyPath]
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<R, T>) -> T {
-        right[keyPath: keyPath]
-    }
-
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        self.left = try container.decode(L.self)
-        self.right = try container.decode(R.self)
-    }
-}
+//@dynamicMemberLookup
+//public struct _Concatenated<each V: Decodable>: Decodable {
+//    public init(_ value: repeat each V) {
+//        self.value = (repeat each value)
+//    }
+//    @usableFromInline var value: (repeat each V)
+//
+//    @inlinable
+//    public subscript<T>(dynamicMember keyPath: KeyPath<(repeat each V), T>) -> T {
+//        value[keyPath: keyPath]
+//    }
+//
+//    public init(from decoder: any Decoder) throws {
+//        let container = try decoder.singleValueContainer()
+//        self.value = try (repeat container.decode((each V).self))
+//    }
+//}
 
 public struct PropertyNullableColumn<Base: PropertySQLExpression>: PropertySQLExpression where Base.Property: Decodable {
     @inlinable
@@ -48,6 +66,7 @@ public struct PropertyNullableColumn<Base: PropertySQLExpression>: PropertySQLEx
             }
         }
 
+        @inlinable
         public subscript<T>(dynamicMember keyPath: KeyPath<Base.Property, T>) -> T? {
             wrapped?[keyPath: keyPath]
         }
@@ -79,35 +98,10 @@ public struct PropertySQLExpressionAsSQLExpression<Base: PropertySQLExpression>:
         self.base = base
     }
     public var base: Base
+
+    @inlinable
     public func serialize(to serializer: inout SQLSerializer) {
         base.serializeAsPropertySQLExpression(to: &serializer)
-    }
-}
-
-@resultBuilder
-public struct PropertyBuilder {
-    public struct Result<PropertyType: Decodable> {
-        public var columns: [any SQLExpression]
-    }
-
-    public static func buildBlock<T>(_ component: T) -> T {
-        component
-    }
-
-    public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> Result<T.Property> {
-        Result(
-            columns: [PropertySQLExpressionAsSQLExpression(first)]
-        )
-    }
-
-    public static func buildPartialBlock<Accumulated, Next: PropertySQLExpression>(
-        accumulated: Result<Accumulated>,
-        next: Next
-    ) -> Result<PropertyConcat<Accumulated, Next.Property>>
-    {
-        Result(
-            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(next) as any SQLExpression)
-        )
     }
 }
 
@@ -170,8 +164,8 @@ extension SQLDatabase {
     }
 
     @inlinable
-    public func selectWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedSelectBuilder<Row> {
-        let builder = SQLTypedSelectBuilder<Row>(on: self)
+    public func selectWithColumns<T>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<T>) -> SQLTypedSelectBuilder<T> {
+        let builder = SQLTypedSelectBuilder<T>(on: self)
         builder.columns(build().columns)
         return builder
     }
@@ -195,7 +189,7 @@ extension SQLReturningBuilder {
     }
 
     @inlinable
-    public func returningWithColumns<Row>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<Row>) -> SQLTypedReturningResultBuilder<Row> {
+    public func returningWithColumns<T>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<T>) -> SQLTypedReturningResultBuilder<T> {
         self.returning = .init(build().columns)
         return SQLTypedReturningResultBuilder(self)
     }
@@ -206,9 +200,9 @@ func playground(db: any SQLDatabase) async throws {
 //    print(Email.self)
 
     let row = try await db.selectWithColumns {
-        UserTable.all
-        UserTable.givenName.nullable
-//        email(SQLColumn("email", table: "emails"))
+//        UserTable.all
+        UserTable.familyName
+        UserTable.familyNameKana
     }
     .from(UserTable.self)
     .join("emails", on: UserTable.id.withTable, .equal, SQLColumn("userID", table: "emails"))
@@ -220,7 +214,7 @@ func playground(db: any SQLDatabase) async throws {
         .first()?.tel
 
     print(row.familyName)
-    print(row.givenName ?? "null")
+    print(row.familyNameKana ?? "null")
 //    print(row.email)
 }
 
@@ -231,7 +225,7 @@ package struct UserTable: SchemaProtocol {
     package var id: Int
     package var familyName: String
     package var givenName: String
-    package var familyNameKana: String
-    package var givenNameKana: String
+    package var familyNameKana: String?
+    package var givenNameKana: String?
     package var tel: String
 }
