@@ -1,5 +1,5 @@
 /*
-for i in 2...12 {
+for i in 1...12 {
     let e = """
     public static func buildBlock<
 \((0..<i).map({ "C\($0): PropertySQLExpression" }).joined(separator: ", "))
@@ -22,10 +22,6 @@ public struct PropertyBuilder {
         public var columns: [any SQLExpression]
     }
 
-    public static func buildBlock<C0: PropertySQLExpression>(_ component: C0) -> C0 {
-        component
-    }
-
 //    public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> Result<T.Property> {
 //        Result(
 //            columns: [PropertySQLExpressionAsSQLExpression(first)]
@@ -41,6 +37,16 @@ public struct PropertyBuilder {
 //            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(next) as any SQLExpression)
 //        )
 //    }
+
+    public static func buildBlock<
+        C0: PropertySQLExpression
+    >(
+        _ c0: C0
+    ) -> Result<Intersection1<C0.Property>> {
+        Result(
+            columns: [PropertySQLExpressionAsSQLExpression(c0)]
+        )
+    }
 
     public static func buildBlock<
         C0: PropertySQLExpression, C1: PropertySQLExpression
