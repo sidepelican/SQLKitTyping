@@ -200,21 +200,23 @@ func playground(db: any SQLDatabase) async throws {
 //    print(Email.self)
 
     let row = try await db.selectWithColumns {
-//        UserTable.all
-        UserTable.familyName
-        UserTable.familyNameKana
+        UserTable.all
+        group {
+            UserTable.familyName
+            UserTable.familyNameKana
+        }
     }
     .from(UserTable.self)
     .join("emails", on: UserTable.id.withTable, .equal, SQLColumn("userID", table: "emails"))
     .where(UserTable.id, .equal, 123)
     .first()!
-
+//    UserTable.fami
     let row2 = try await db.insert(into: UserTable.self)
         .returning(UserTable.tel)
         .first()?.tel
 
     print(row.familyName)
-    print(row.familyNameKana ?? "null")
+    print(row.1.group.familyNameKana ?? "null")
 //    print(row.email)
 }
 

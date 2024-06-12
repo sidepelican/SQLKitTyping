@@ -22,22 +22,6 @@ public struct PropertyBuilder {
         public var columns: [any SQLExpression]
     }
 
-//    public static func buildPartialBlock<T: PropertySQLExpression>(first: T) -> Result<T.Property> {
-//        Result(
-//            columns: [PropertySQLExpressionAsSQLExpression(first)]
-//        )
-//    }
-//
-//    public static func buildPartialBlock<each Accumulated, Next: PropertySQLExpression>(
-//        accumulated: Result<repeat each Accumulated>,
-//        next: Next
-//    ) -> Result<repeat each Accumulated, Next.Property>
-//    {
-//        Result(
-//            columns: accumulated.columns + CollectionOfOne(PropertySQLExpressionAsSQLExpression(next) as any SQLExpression)
-//        )
-//    }
-
     public static func buildBlock<
         C0: PropertySQLExpression
     >(
@@ -157,5 +141,32 @@ public struct PropertyBuilder {
             columns: [PropertySQLExpressionAsSQLExpression(c0), PropertySQLExpressionAsSQLExpression(c1), PropertySQLExpressionAsSQLExpression(c2), PropertySQLExpressionAsSQLExpression(c3), PropertySQLExpressionAsSQLExpression(c4), PropertySQLExpressionAsSQLExpression(c5), PropertySQLExpressionAsSQLExpression(c6), PropertySQLExpressionAsSQLExpression(c7), PropertySQLExpressionAsSQLExpression(c8), PropertySQLExpressionAsSQLExpression(c9), PropertySQLExpressionAsSQLExpression(c10), PropertySQLExpressionAsSQLExpression(c11)]
         )
     }
+}
 
+public func group<T>(@PropertyBuilder _ build: () -> PropertyBuilder.Result<T>) -> some PropertySQLExpression<GroupedProperty<T>> {
+    return GroupExpression<GroupedProperty<T>>(expressions: build().columns)
+}
+
+public struct GroupedProperty<Intersection: Decodable>: Decodable {
+    public var group: Intersection
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        group = try container.decode(Intersection.self)
+    }
+}
+
+fileprivate struct GroupExpression<Property>: PropertySQLExpression {
+    var expressions: [any SQLExpression]
+
+    func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
+        let separator = SQLRaw(", ")
+        var iter = self.expressions.makeIterator()
+
+        iter.next()?.serialize(to: &serializer)
+        while let item = iter.next() {
+            separator.serialize(to: &serializer)
+            item.serialize(to: &serializer)
+        }
+    }
 }
