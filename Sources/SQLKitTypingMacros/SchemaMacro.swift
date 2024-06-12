@@ -95,12 +95,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                     \(modifiers)var \(def.varIdentifier): \(def.columnType)
                     \(modifiers)enum CodingKeys: CodingKey {
                         case \(def.varIdentifier)
-                        \(modifiers)init?(stringValue: String) {
-                            guard stringValue == "\\(Schema.tableName)_\(raw: def.columnName)" else {
-                                return nil
-                            }
-                            self = .\(def.varIdentifier)
-                        }
+                        \(modifiers)var stringValue: String { "\\(Schema.tableName)_\(raw: def.columnName)" }
                     }
                 }
             }
