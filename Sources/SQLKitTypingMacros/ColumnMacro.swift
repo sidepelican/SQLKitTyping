@@ -50,7 +50,15 @@ public struct Column: PeerMacro {
                 name: "\(raw: def.columnTypeName)",
                 initializer: TypeInitializerClauseSyntax(value: "\(aliasName).Value" as TypeSyntax)
             )),
-            "\(def.modifiers.adding(keyword: .static))let \(def.varIdentifier) = \(aliasName)()",
+            DeclSyntax(VariableDeclSyntax(
+                leadingTrivia: .docLineComment("/// => \(def.varIdentifier): \(def.columnType.description)").appending(.newline),
+                modifiers: def.modifiers.trimmed.adding(keyword: .static),
+                .let,
+                name: PatternSyntax("\(def.varIdentifier)"),
+                initializer: InitializerClauseSyntax(
+                    value: FunctionCallExprSyntax(callee: "\(aliasName)" as ExprSyntax)
+                )
+            ))
         ]
     }
 }

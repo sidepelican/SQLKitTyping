@@ -12,7 +12,7 @@ extension Foo {
             UserTable.all
             Email(SQLLiteral.string("foo@example.com"))
             group1 {
-                UserTable.familyName
+                UserTable.familyName(SQLLiteral.string("aaa"))
                 UserTable.familyNameKana
             }
         }
@@ -29,6 +29,16 @@ extension Foo {
         print(row.values.0.familyName)
         print(row.group1.familyNameKana ?? "null")
         //    print(row.email)
+    }
+
+    enum CodingKeys: CodingKey {
+        init?(stringValue: String) {
+            guard stringValue == "" else {
+                return nil
+            }
+            self = .aa
+        }
+        case aa
     }
 }
 

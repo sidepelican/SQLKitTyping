@@ -82,10 +82,6 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         }
 
         func buildColumnType(def: ColumnDefinition) -> DeclSyntax {
-            let firstName = namedDecl.name.trimmed.description
-                .trimmingSuffix("Schema")
-                .trimmingSuffix("Table")
-            let sqlColumnName = "\(firstName)_\(def.columnName)"
             let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
 
             return """
@@ -95,16 +91,16 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
 
                 \(modifiers)var name: String { "\(raw: def.columnName)" }
 
-                @inlinable
-                \(modifiers)func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
-                    SQLAlias(SQLColumn(name, table: Schema.tableName), as: "\(raw: sqlColumnName)")
-                        .serialize(to: &serializer)
-                }
-
                 \(modifiers)struct Property: Decodable {
                     \(modifiers)var \(def.varIdentifier): \(def.columnType)
-                    \(modifiers)enum CodingKeys: String, CodingKey {
-                        case \(def.varIdentifier) = "\(raw: sqlColumnName)"
+                    \(modifiers)enum CodingKeys: CodingKey {
+                        case \(def.varIdentifier)
+                        \(modifiers)init?(stringValue: String) {
+                            guard stringValue == "\\(Schema.tableName)_\(raw: def.columnName)" else {
+                                return nil
+                            }
+                            self = .\(def.varIdentifier)
+                        }
                     }
                 }
             }

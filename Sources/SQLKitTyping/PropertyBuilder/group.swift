@@ -50,7 +50,7 @@ public struct GroupedProperty4<Intersection: Decodable>: Decodable {
     }
 }
 
-fileprivate struct GroupExpression<Property>: PropertySQLExpression {
+fileprivate struct GroupExpression<Property: Decodable>: PropertySQLExpression {
     var expressions: [any SQLExpression]
 
     func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {

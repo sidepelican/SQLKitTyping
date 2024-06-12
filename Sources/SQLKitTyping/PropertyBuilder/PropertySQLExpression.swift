@@ -1,11 +1,41 @@
 import SQLKit
 
 public protocol PropertySQLExpression<Property>: Sendable {
-    associatedtype Property
+    associatedtype Property: Decodable
     func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)
 }
 
-public struct NullableColumnExpression<Base: PropertySQLExpression>: PropertySQLExpression where Base.Property: Decodable {
+extension PropertySQLExpression where Self: TypedSQLColumn {
+    @usableFromInline var macroGeneratingCodingKeyName: String {
+        "\(Schema.tableName)_\(name)"
+    }
+
+    @inlinable
+    public func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
+        SQLAlias(self.withTable, as: macroGeneratingCodingKeyName).serialize(to: &serializer)
+    }
+
+    @inlinable
+    public func callAsFunction(_ expr: any SQLExpression) -> GenericColumnExpression<Self.Property, some SQLExpression> {
+        .init(expr: SQLAlias(expr, as: macroGeneratingCodingKeyName))
+    }
+}
+
+public struct GenericColumnExpression<Property: Decodable, Expr: SQLExpression>: PropertySQLExpression {
+    @inlinable
+    public init(expr: Expr) {
+        self.expr = expr
+    }
+
+    @usableFromInline
+    var expr: Expr
+
+    public func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)  {
+        expr.serialize(to: &serializer)
+    }
+}
+
+public struct NullableColumnExpression<Base: PropertySQLExpression>: PropertySQLExpression {
     @inlinable
     public init(base: Base) {
         self.base = base
