@@ -12,14 +12,9 @@ public struct Intersection\(i)<
     \((0..<i).map({ "C\($0): Decodable" }).joined(separator: ", "))
 >: Decodable {
     public typealias Values = (\((0..<i).map({ "C\($0)" }).joined(separator: ", ")))
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
 \((0..<i).map({ """
@@ -45,14 +40,9 @@ public struct Intersection2<
     C0: Decodable, C1: Decodable
 >: Decodable {
     public typealias Values = (C0, C1)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -76,14 +66,9 @@ public struct Intersection3<
     C0: Decodable, C1: Decodable, C2: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -112,14 +97,9 @@ public struct Intersection4<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -153,14 +133,9 @@ public struct Intersection5<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -199,14 +174,9 @@ public struct Intersection6<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -250,14 +220,9 @@ public struct Intersection7<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -306,14 +271,9 @@ public struct Intersection8<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable, C7: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6, C7)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -367,14 +327,9 @@ public struct Intersection9<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable, C7: Decodable, C8: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6, C7, C8)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -433,14 +388,9 @@ public struct Intersection10<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable, C7: Decodable, C8: Decodable, C9: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6, C7, C8, C9)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -504,14 +454,9 @@ public struct Intersection11<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable, C7: Decodable, C8: Decodable, C9: Decodable, C10: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable
@@ -580,14 +525,9 @@ public struct Intersection12<
     C0: Decodable, C1: Decodable, C2: Decodable, C3: Decodable, C4: Decodable, C5: Decodable, C6: Decodable, C7: Decodable, C8: Decodable, C9: Decodable, C10: Decodable, C11: Decodable
 >: Decodable {
     public typealias Values = (C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11)
-    @usableFromInline var values: Values
+    public var values: Values
     public init(_ values: Values) {
         self.values = values
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Values, T>) -> T {
-        values[keyPath: keyPath]
     }
 
     @inlinable

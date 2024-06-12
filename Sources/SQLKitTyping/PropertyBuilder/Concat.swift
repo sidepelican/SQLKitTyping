@@ -201,7 +201,7 @@ func playground(db: any SQLDatabase) async throws {
 
     let row = try await db.selectWithColumns {
         UserTable.all
-        group {
+        group1 {
             UserTable.familyName
             UserTable.familyNameKana
         }
@@ -215,8 +215,8 @@ func playground(db: any SQLDatabase) async throws {
         .returning(UserTable.tel)
         .first()?.tel
 
-    print(row.familyName)
-    print(row.1.group.familyNameKana ?? "null")
+    print(row.values.0.familyName)
+    print(row.group1.familyNameKana ?? "null")
 //    print(row.email)
 }
 
