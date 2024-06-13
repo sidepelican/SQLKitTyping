@@ -5,13 +5,13 @@ import SwiftSyntaxMacros
 
 struct ColumnDefinition {
     /* ex)
-     public var `class`: Class
+     public var `class`: MyClass
      */
 
     var varIdentifier: TokenSyntax // `class`
     var columnName: String // class
-    var columnTypeName: String // Class_
-    var columnType: TypeSyntax // Class
+    var columnTypeName: String // Class
+    var columnType: TypeSyntax // MyClass
     var typealiasName: String // __class
     var modifiers: DeclModifierListSyntax // public
 

@@ -2,16 +2,16 @@ import XCTest
 import SQLKitTyping
 
 @Schema
-fileprivate enum Test: SchemaProtocol {
-    static var tableName: String { "tests" }
+public enum TestTable: SchemaProtocol {
+    public static var tableName: String { "tests" }
 
-    var foo: Int
+    fileprivate var foo: Int
     var bar: String
 }
 
 fileprivate struct S {
-    var foo: Test.Foo
-    var bar: Test.Bar
+    var foo: TestTable.Foo
+    var bar: TestTable.Bar
 }
 
 enum Foo {

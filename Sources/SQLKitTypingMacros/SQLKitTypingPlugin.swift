@@ -7,5 +7,6 @@ struct SQLKitTypingPlugin: CompilerPlugin {
         Schema.self,
         Column.self,
         EraseProperty.self,
+        SQLColumnPropertyType.self,
     ]
 }

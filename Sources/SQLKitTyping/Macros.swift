@@ -1,3 +1,6 @@
+@_exported import SQLKit
+
+@attached(member, names: named(All), named(all))
 @attached(memberAttribute)
 @attached(peer, names: suffixed(_types))
 public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
@@ -7,3 +10,6 @@ public macro Column(namespace: String) = #externalMacro(module: "SQLKitTypingMac
 
 @attached(accessor)
 public macro EraseProperty() = #externalMacro(module: "SQLKitTypingMacros", type: "EraseProperty")
+
+@freestanding(declaration, names: arbitrary)
+public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKitTypingMacros", type: "SQLColumnPropertyType")

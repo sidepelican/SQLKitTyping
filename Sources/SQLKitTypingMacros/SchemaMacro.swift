@@ -1,9 +1,30 @@
-import SwiftCompilerPlugin
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct Schema: MemberAttributeMacro, PeerMacro {
+public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
+
+    // MARK: - MemberMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+            return []
+        }
+
+        return [
+            DeclSyntax(TypeAliasDeclSyntax(
+                modifiers: declaration.modifiers.trimmed,
+                name: "All",
+                initializer: TypeInitializerClauseSyntax(value: "\(namedDecl.name.trimmed)_types.__allProperty" as TypeSyntax)
+            )),
+            "\(declaration.modifiers.adding(keyword: .static))let all = AllPropertyExpression<\(namedDecl.name.trimmed), \(namedDecl.name.trimmed)_types.__allProperty>()",
+        ]
+    }
 
     // MARK: - MemberAttributeMacro
 
@@ -51,18 +72,65 @@ public struct Schema: MemberAttributeMacro, PeerMacro {
             return []
         }
 
-        return [
-            DeclSyntax(try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
-                for member in declGroup.memberBlock.members {
-                    if let def = ColumnDefinition(
-                        decl: member.decl,
-                        in: context,
-                        emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
-                    ) {
-                        "\(def.modifiers)typealias \(raw: def.typealiasName) = \(def.columnType)"
+        let columnDefs = declGroup.memberBlock.members.compactMap {
+            ColumnDefinition(
+                decl: $0 .decl,
+                in: context,
+                emitsDiagnostics: true // エラーが重複するので、エラーはここでだけ出す
+            )
+        }
+
+        func buildColumnType(def: ColumnDefinition) -> DeclSyntax {
+            let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
+
+            return """
+            \(modifiers)struct \(raw: def.typealiasName): TypedSQLColumn, PropertySQLExpression {
+                \(modifiers)typealias Schema = \(namedDecl.name.trimmed)
+                \(modifiers)typealias Value = \(def.columnType)
+
+                \(modifiers)var name: String { "\(raw: def.columnName)" }
+
+                \(modifiers)struct Property: Decodable {
+                    \(modifiers)var \(def.varIdentifier): \(def.columnType)
+                    \(modifiers)enum CodingKeys: CodingKey {
+                        case \(def.varIdentifier)
+                        \(modifiers)var stringValue: String { "\\(Schema.tableName)_\(raw: def.columnName)" }
                     }
+                }
+            }
+            """
+        }
+
+        let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
+
+        func buildAllType() throws -> StructDeclSyntax {
+            return try StructDeclSyntax("\(modifiers)struct __allProperty: Decodable") {
+                for (i, def) in columnDefs.enumerated() {
+                    let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
+                    try VariableDeclSyntax(
+                        "\(modifiers)var \(def.varIdentifier): \(def.columnType)"
+                    )
+                    .with(\.leadingTrivia, i != 0 ? .newline : [])
+                }
+            }
+        }
+
+        return [
+            DeclSyntax(try EnumDeclSyntax("\(modifiers)enum \(namedDecl.name.trimmed)_types") {
+                try buildAllType()
+                for def in columnDefs {
+                    buildColumnType(def: def)
                 }
             })
         ]
+    }
+}
+
+extension StringProtocol {
+    fileprivate func trimmingSuffix(_ pattern: String) -> SubSequence {
+        if self.hasSuffix(pattern) {
+            return self[startIndex..<index(endIndex, offsetBy: -pattern.count)]
+        }
+        return self[...]
     }
 }
