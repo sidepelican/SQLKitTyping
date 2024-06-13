@@ -35,9 +35,6 @@ struct Test {
         }
     }
 
-    /// => Int
-    typealias Value = Test_types.__value.Value
-
     /// => value: Int
     static let value = Test_types.__value()
 
@@ -197,9 +194,6 @@ struct Test {
         }
     }
 
-    /// => Class
-    typealias Class = Test_types.__class.Value
-
     /// => `class`: Class
     static let `class` = Test_types.__class()
     var `struct`: Int {
@@ -208,9 +202,6 @@ struct Test {
             fatalError()
         }
     }
-
-    /// => Int
-    typealias Struct = Test_types.__struct.Value
 
     /// => `struct`: Int
     static let `struct` = Test_types.__struct()

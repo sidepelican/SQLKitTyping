@@ -44,12 +44,6 @@ public struct Column: PeerMacro {
         let aliasName = "\(raw: arguments.namespace).\(raw: def.typealiasName)" as TypeSyntax
 
         return [
-//            DeclSyntax(TypeAliasDeclSyntax(
-//                leadingTrivia: .docLineComment("/// => \(def.columnType.description)").appending(.newline),
-//                modifiers: def.modifiers.trimmed,
-//                name: "\(raw: def.columnTypeName)",
-//                initializer: TypeInitializerClauseSyntax(value: "\(aliasName).Value" as TypeSyntax)
-//            )),
             DeclSyntax(VariableDeclSyntax(
                 leadingTrivia: .docLineComment("/// => \(def.varIdentifier): \(def.columnType.description)").appending(.newline),
                 modifiers: def.modifiers.trimmed.adding(keyword: .static),
