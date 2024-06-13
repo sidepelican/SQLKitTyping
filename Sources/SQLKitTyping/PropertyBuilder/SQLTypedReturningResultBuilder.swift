@@ -12,8 +12,15 @@ public final class SQLTypedReturningResultBuilder<Row: Decodable>: SQLTypedQuery
 
 extension SQLReturningBuilder {
     @inlinable
-    public func returning<Expr: PropertySQLExpression>(_ column: Expr) -> SQLTypedReturningResultBuilder<Expr.Property> {
+    public func returningWithColumn<Expr: PropertySQLExpression>(_ column: Expr) -> SQLTypedReturningResultBuilder<Expr.Property> {
         self.returning = .init([PropertySQLExpressionAsSQLExpression(column)])
+        return SQLTypedReturningResultBuilder(self)
+    }
+
+    @inlinable
+    public func returningWithColumn<Property>(_ column: AllPropertyExpression<some Any, Property>) -> SQLTypedReturningResultBuilder<Property> {
+        // INFO: TABLE.* cannot use in returning clause.
+        self.returning = .init([SQLLiteral.all])
         return SQLTypedReturningResultBuilder(self)
     }
 

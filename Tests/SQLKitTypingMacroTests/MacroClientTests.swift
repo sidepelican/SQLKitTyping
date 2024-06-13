@@ -10,8 +10,8 @@ public enum TestTable: SchemaProtocol {
 }
 
 fileprivate struct S {
-    var foo: TestTable.Foo
-    var bar: TestTable.Bar
+    @TypeOf(TestTable.foo) var foo
+    @TypeOf(TestTable.bar) var bar
 }
 
 enum Foo {

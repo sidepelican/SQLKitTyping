@@ -12,7 +12,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+        guard let namedDecl = declaration.asProtocol((any NamedDeclSyntax).self) else {
             return []
         }
 
@@ -34,7 +34,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         providingAttributesFor member: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [AttributeSyntax] {
-        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+        guard let namedDecl = declaration.asProtocol((any NamedDeclSyntax).self) else {
             return []
         }
 
@@ -64,11 +64,11 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         providingPeersOf declaration: some DeclSyntaxProtocol,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let namedDecl = declaration.asProtocol(NamedDeclSyntax.self) else {
+        guard let namedDecl = declaration.asProtocol((any NamedDeclSyntax).self) else {
             return []
         }
 
-        guard let declGroup = declaration.asProtocol(DeclGroupSyntax.self) else {
+        guard let declGroup = declaration.asProtocol((any DeclGroupSyntax).self) else {
             return []
         }
 

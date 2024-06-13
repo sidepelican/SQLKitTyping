@@ -3,6 +3,21 @@
 import PackageDescription
 import CompilerPluginSupport
 
+func swiftSettings(strictConcurrency: Bool = true, existentialAny: Bool = true) -> [SwiftSetting] {
+    var settings: [SwiftSetting] = [
+        .enableUpcomingFeature("ForwardTrailingClosures"),
+        .enableUpcomingFeature("ConciseMagicFile"),
+        .enableUpcomingFeature("BareSlashRegexLiterals"),
+    ]
+    if existentialAny {
+        settings.append(.enableUpcomingFeature("ExistentialAny"))
+    }
+    if strictConcurrency {
+        settings.append(.enableExperimentalFeature("StrictConcurrency"))
+    }
+    return settings
+}
+
 let package = Package(
     name: "SQLKitTyping",
     platforms: [.macOS(.v12)],
@@ -19,14 +34,16 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
-            ]
+            ],
+            swiftSettings: swiftSettings()
         ),
         .target(
             name: "SQLKitTyping",
             dependencies: [
                 .product(name: "SQLKit", package: "sql-kit"),
                 "SQLKitTypingMacros",
-            ]
+            ],
+            swiftSettings: swiftSettings()
         ),
         .testTarget(
             name: "SQLKitTypingMacroTests",
@@ -34,7 +51,8 @@ let package = Package(
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
                 "SQLKitTypingMacros",
                 "SQLKitTyping",
-            ]
+            ],
+            swiftSettings: swiftSettings()
         ),
     ]
 )
