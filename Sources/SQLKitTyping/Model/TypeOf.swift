@@ -33,14 +33,14 @@
 }
 
 extension TypeOf: Decodable where Value: Decodable {
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let s = try decoder.singleValueContainer()
         wrappedValue = try s.decode(Value.self)
     }
 }
 
 extension TypeOf: Encodable where Value: Encodable {
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var s = encoder.singleValueContainer()
         try s.encode(wrappedValue)
     }
@@ -76,7 +76,7 @@ extension TypeOf: Sendable where Value: Sendable {}
 }
 
 extension OptionalTypeOf: Decodable where Value: Decodable {
-    public init(from decoder: Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let s = try decoder.singleValueContainer()
         if s.decodeNil() {
             wrappedValue = nil
@@ -87,7 +87,7 @@ extension OptionalTypeOf: Decodable where Value: Decodable {
 }
 
 extension OptionalTypeOf: Encodable where Value: Encodable {
-    public func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: any Encoder) throws {
         var s = encoder.singleValueContainer()
         if let wrappedValue = wrappedValue {
             try s.encode(wrappedValue)

@@ -118,7 +118,7 @@ extension SQLJoinBuilder {
     @discardableResult
     public func join<S: SchemaProtocol, T, S2>(
         _ table: S.Type,
-        method: SQLExpression = SQLJoinMethod.inner,
+        method: any SQLExpression = SQLJoinMethod.inner,
         on left: some TypedSQLColumn<S2, T>,
         _ op: SQLBinaryOperator,
         _ right: some TypedSQLColumn<S, T>
@@ -130,7 +130,7 @@ extension SQLJoinBuilder {
     @discardableResult
     public func join<S: SchemaProtocol, T, S2>(
         _ table: S.Type,
-        method: SQLExpression = SQLJoinMethod.inner,
+        method: any SQLExpression = SQLJoinMethod.inner,
         on left: some TypedSQLColumn<S2, T?>,
         _ op: SQLBinaryOperator,
         _ right: some TypedSQLColumn<S, T>
@@ -154,6 +154,24 @@ extension SQLInsertBuilder {
 
         self.columns(columns)
         self.values(values)
+        return self
+    }
+
+    @discardableResult
+    public func columnsAndValues<each C: TypedSQLColumn>(
+        columns: repeat each C,
+        values: [(repeat (each C).Value)]
+    ) -> Self {
+        var sumColumns: [String] = []
+        repeat sumColumns.append((each columns).name)
+        self.columns(sumColumns)
+
+        for value in values {
+            var sumValues: [SQLBind] = []
+            repeat sumValues.append(SQLBind(each value))
+            self.values(sumValues)
+        }
+
         return self
     }
 }

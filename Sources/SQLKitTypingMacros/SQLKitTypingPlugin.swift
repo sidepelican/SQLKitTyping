@@ -3,7 +3,7 @@ import SwiftSyntaxMacros
 
 @main
 struct SQLKitTypingPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
+    let providingMacros: [any Macro.Type] = [
         Schema.self,
         Column.self,
         EraseProperty.self,

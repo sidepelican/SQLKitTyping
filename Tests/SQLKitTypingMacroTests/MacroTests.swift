@@ -5,13 +5,13 @@ import XCTest
 #if canImport(SQLKitTypingMacros)
 import SQLKitTypingMacros
 
-private let allMacro: [String: Macro.Type] = [
+private let allMacro: [String: any Macro.Type] = [
     "Schema": Schema.self,
     "Column": Column.self,
     "EraseProperty": EraseProperty.self,
 ]
 
-private let schemaMacro: [String: Macro.Type] = [
+private let schemaMacro: [String: any Macro.Type] = [
     "Schema": Schema.self,
 ]
 
