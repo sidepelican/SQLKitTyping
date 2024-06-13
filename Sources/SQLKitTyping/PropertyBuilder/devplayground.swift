@@ -12,8 +12,8 @@ extension Foo {
             UserTable.all
             email(SQLLiteral.string("foo@example.com"), as: String.self)
             group1 {
-                UserTable.familyName(SQLLiteral.string("aaa"))
-                UserTable.familyNameKana
+                UserTable.familyName(SQLLiteral.string("aaa")).nullable
+                UserTable.familyNameKana.nullable
             }
         }
             .from(UserTable.self)
@@ -27,7 +27,7 @@ extension Foo {
 
         print(row.email)
         print(row.values.0.familyName)
-        print(row.group1.familyNameKana ?? "null")
+//        print(row.group1.familyNameKana ?? "null")
         //    print(row.email)
     }
 
