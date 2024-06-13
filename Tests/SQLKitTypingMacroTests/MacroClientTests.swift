@@ -5,7 +5,7 @@ import SQLKitTyping
 fileprivate enum TestTable: SchemaProtocol {
     static var tableName: String { "tests" }
 
-    var foo: Int
+    fileprivate var foo: Int
     var bar: String
 }
 

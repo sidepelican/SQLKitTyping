@@ -20,9 +20,9 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             DeclSyntax(TypeAliasDeclSyntax(
                 modifiers: declaration.modifiers.trimmed,
                 name: "All",
-                initializer: TypeInitializerClauseSyntax(value: "\(namedDecl.name.trimmed)_types.__all.Property" as TypeSyntax)
+                initializer: TypeInitializerClauseSyntax(value: "\(namedDecl.name.trimmed)_types.__allProperty" as TypeSyntax)
             )),
-            "\(declaration.modifiers.adding(keyword: .static))let all = \(namedDecl.name.trimmed)_types.__all()",
+            "\(declaration.modifiers.adding(keyword: .static))let all = AllPropertyExpression<\(namedDecl.name.trimmed), \(namedDecl.name.trimmed)_types.__allProperty>()",
         ]
     }
 
@@ -72,7 +72,6 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             return []
         }
 
-
         let columnDefs = declGroup.memberBlock.members.compactMap {
             ColumnDefinition(
                 decl: $0 .decl,
@@ -102,34 +101,16 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             """
         }
 
-        func buildAllType() throws -> DeclSyntax {
-            let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
-            let properties = try MemberBlockItemListSyntax {
-                for def in columnDefs {
+        func buildAllType() throws -> StructDeclSyntax {
+            return try StructDeclSyntax("struct __allProperty: Decodable") {
+                for (i, def) in columnDefs.enumerated() {
+                    let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
                     try VariableDeclSyntax(
-                        "\(def.modifiers.trimmed) var \(def.varIdentifier): \(def.columnType)"
-                    ).with(\.trailingTrivia, .newline)
+                        "\(modifiers)var \(def.varIdentifier): \(def.columnType)"
+                    )
+                    .with(\.leadingTrivia, i != 0 ? .newline : [])
                 }
             }
-            return """
-            \(modifiers)struct __all: PropertySQLExpression {
-                \(modifiers)typealias Schema = \(namedDecl.name.trimmed)
-
-                @inlinable
-                \(modifiers)var withTable: SQLAllColumn {
-                    SQLAllColumn(table: Schema.tableName, serializeTable: true)
-                }
-
-                @inlinable
-                \(modifiers)func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer) {
-                    withTable.serialize(to: &serializer)
-                }
-
-                \(modifiers)struct Property: Decodable {
-                    \(properties)
-                }
-            }
-            """
         }
 
         return [
