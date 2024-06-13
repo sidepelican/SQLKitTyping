@@ -12,4 +12,4 @@ public macro Column(namespace: String) = #externalMacro(module: "SQLKitTypingMac
 public macro EraseProperty() = #externalMacro(module: "SQLKitTypingMacros", type: "EraseProperty")
 
 @freestanding(declaration, names: arbitrary)
-public macro SQLColumnPropertyType(name: String, type: any Decodable.Type) = #externalMacro(module: "SQLKitTypingMacros", type: "SQLColumnPropertyType")
+public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKitTypingMacros", type: "SQLColumnPropertyType")

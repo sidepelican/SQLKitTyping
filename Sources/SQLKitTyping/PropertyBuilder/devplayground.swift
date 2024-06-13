@@ -3,14 +3,14 @@ import SQLKit
 struct Foo {}
 extension Foo {
 
-    #SQLColumnPropertyType(name: "Email", type: String.self)
-    
+    #SQLColumnPropertyType(name: "email")
+
     func playground(db: any SQLDatabase) async throws {
         //    print(Email.self)
 
         let row = try await db.selectWithColumns {
             UserTable.all
-            Email(SQLLiteral.string("foo@example.com"))
+            email(SQLLiteral.string("foo@example.com"), as: String.self)
             group1 {
                 UserTable.familyName(SQLLiteral.string("aaa"))
                 UserTable.familyNameKana
@@ -25,7 +25,7 @@ extension Foo {
             .returning(UserTable.tel)
             .first()?.tel
 
-        print(row.Email)
+        print(row.email)
         print(row.values.0.familyName)
         print(row.group1.familyNameKana ?? "null")
         //    print(row.email)
