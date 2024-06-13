@@ -47,11 +47,15 @@ public struct NullableColumnExpression<Base: PropertySQLExpression>: PropertySQL
 
         public init(from decoder: any Decoder) throws {
             let container = try decoder.singleValueContainer()
-            do {
-                wrapped = try container.decode(Base.Property.self)
-            } catch let error as DecodingError {
-                if case .valueNotFound = error {
-                    wrapped = nil
+            if container.decodeNil() {
+                wrapped = nil
+            } else {
+                do {
+                    wrapped = try container.decode(Base.Property.self)
+                } catch let error as DecodingError {
+                    if case .valueNotFound = error {
+                        wrapped = nil
+                    }
                 }
             }
         }
