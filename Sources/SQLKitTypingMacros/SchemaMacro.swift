@@ -101,8 +101,10 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             """
         }
 
+        let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
+
         func buildAllType() throws -> StructDeclSyntax {
-            return try StructDeclSyntax("struct __allProperty: Decodable") {
+            return try StructDeclSyntax("\(modifiers)struct __allProperty: Decodable") {
                 for (i, def) in columnDefs.enumerated() {
                     let modifiers = def.modifiers.trimmed.with(\.trailingTrivia, .space)
                     try VariableDeclSyntax(
@@ -114,7 +116,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         }
 
         return [
-            DeclSyntax(try EnumDeclSyntax("\(declGroup.modifiers)enum \(namedDecl.name.trimmed)_types") {
+            DeclSyntax(try EnumDeclSyntax("\(modifiers)enum \(namedDecl.name.trimmed)_types") {
                 try buildAllType()
                 for def in columnDefs {
                     buildColumnType(def: def)

@@ -93,7 +93,7 @@ public struct Test {
 }
 
 public enum Test_types {
-    struct __allProperty: Decodable {
+    public struct __allProperty: Decodable {
         public var fooBar: Int?
     }
     public struct __fooBar: TypedSQLColumn, PropertySQLExpression {
