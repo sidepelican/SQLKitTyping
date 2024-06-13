@@ -12,3 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: swift test
+      - name: Run example
+        run: swift run
+        working-directory: example
+
