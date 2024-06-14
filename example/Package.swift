@@ -34,14 +34,16 @@ let package = Package(
                 .product(name: "SQLKitTyping", package: "SQLKitTyping"),
                 .product(name: "SQLiteKit", package: "sqlite-kit"),
             ],
-            resources: [.process("chinook.db")]
+            resources: [.process("chinook.db")],
+            swiftSettings: swiftSettings()
         ),
         .testTarget(
             name: "school",
             dependencies: [
                 .product(name: "SQLKitTyping", package: "SQLKitTyping"),
                 .product(name: "SQLiteKit", package: "sqlite-kit"),
-            ]
+            ],
+            swiftSettings: swiftSettings()
         ),
     ]
 )

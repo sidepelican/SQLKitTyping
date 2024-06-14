@@ -1,4 +1,4 @@
-@preconcurrency import Foundation
+import Foundation
 import SQLKitTyping
 
 enum Student: IDSchemaProtocol {

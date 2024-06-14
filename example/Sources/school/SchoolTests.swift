@@ -4,7 +4,7 @@ import SQLiteKit
 import XCTest
 
 final class SchoolTests: XCTestCase {
-    static var sql: Task<any SQLDatabase, any Error>?
+    static nonisolated(unsafe) var sql: Task<any SQLDatabase, any Error>?
     var sql: any SQLDatabase { 
         get async throws { try await Self.sql!.value }
     }
@@ -20,7 +20,7 @@ final class SchoolTests: XCTestCase {
         Self.sql = Task {
             let conn = try await source.makeConnection(logger: logger, on: MultiThreadedEventLoopGroup.singleton.next()).get()
             let sql = conn.sql(queryLogLevel: .info)
-            try resetTestDatabase(sql: sql)
+            try await resetTestDatabase(sql: sql)
             return sql
         }
     }
