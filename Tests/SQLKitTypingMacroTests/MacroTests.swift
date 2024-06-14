@@ -34,7 +34,7 @@ struct Test {
         }
     }
 
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var value: Int
     }
 
@@ -82,7 +82,7 @@ public struct Test {
     @EraseProperty
     public var fooBar: Int?
 
-    public struct __allProperty: Decodable {
+    public struct __allProperty: Codable {
         public var fooBar: Int?
     }
 
@@ -133,7 +133,7 @@ struct Test {
     static let tableName: String = "foo"
     var computed: Int { 42 }
 
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
     }
 
     static let all = AllPropertyExpression<Test, __allProperty>()
@@ -159,7 +159,7 @@ expandedSource: #"""
 struct Test {
     var wrapper = ""
 
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
     }
 
     static let all = AllPropertyExpression<Test, __allProperty>()
@@ -201,7 +201,7 @@ struct Test {
         }
     }
 
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var `class`: Class
         var `struct`: Int
     }
@@ -270,7 +270,7 @@ enum Test {
     @EraseProperty
     var value: Int
 
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var value: Int
     }
 
