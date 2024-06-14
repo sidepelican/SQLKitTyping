@@ -1,13 +1,14 @@
 import Foundation
 import SQLKitTyping
 
+@Schema
 enum Student: IDSchemaProtocol {
     static var tableName: String { "students" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let name = Column<String>("name")
-    static let age = Column<Int?>("age")
+    let id: ID
+    let name: String
+    let age: Int?
 }
 
 enum School: IDSchemaProtocol {
@@ -29,11 +30,14 @@ enum SchoolStudentRelation: RelationSchemaProtocol {
     }
 }
 
+@Schema
 enum Lesson: IDSchemaProtocol {
     static var tableName: String { "lessons" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let subject = Column<String>("subject")
-    static let schoolID = Column<School.ID>("schoolID")
+    let id: ID
+    let subject: String
+    let schoolID: School.ID
+    let date: Date
+    let createdAt: Date
 }
