@@ -1,30 +1,41 @@
-import NIOCore
-import NIOPosix
 import SQLKit
 import SQLKitTyping
-import PostgresKit
+import SQLiteKit
 import XCTest
 
-final class SQLKitTypingTests: XCTestCase {
-    static var eventLoopGroup: EventLoopGroup!
-    static var sql: (any SQLDatabase)?
-    var sql: any SQLDatabase { Self.sql! }
+final class SchoolTests: XCTestCase {
+    static nonisolated(unsafe) var sql: Task<(any SQLDatabase, SQLiteConnection), any Error>?
+    var sql: any SQLDatabase {
+        get async throws { try await Self.sql!.value.0 }
+    }
 
     class override func setUp() {
         super.setUp()
 
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let source = SQLiteConnectionSource(
+            configuration: .init(storage: .memory)
+        )
+        let logger = Logger(label: "school")
 
-        let conn = try! PostgresConnection.test(on: eventLoopGroup.next()).wait()
-        let sql = conn.sql().print()
-        Self.sql = sql
-
-        try! resetTestDatabase(sql: sql)
+        Self.sql = Task {
+            let conn = try await source.makeConnection(logger: logger, on: MultiThreadedEventLoopGroup.singleton.next()).get()
+            do {
+                let sql = conn.sql(queryLogLevel: .info)
+                try await resetTestDatabase(sql: sql)
+                return (sql, conn)
+            } catch {
+                print(String(reflecting: error))
+                try! await conn.close()
+                throw error
+            }
+        }
     }
 
     class override func tearDown() {
-        try! eventLoopGroup.syncShutdownGracefully()
-
+        Task {
+            try await Self.sql?.value.1.close()
+            Self.sql = nil
+        }
         super.tearDown()
     }
 
@@ -32,18 +43,17 @@ final class SQLKitTypingTests: XCTestCase {
         struct Row: Decodable {
             var version: String
         }
-        let row = try await sql.raw("SELECT version();")
+        let row = try await sql.raw("SELECT sqlite_version() as version")
             .first(decoding: Row.self)
 
         print(try XCTUnwrap(row).version)
     }
 
     func testTypedColumn() async throws {
-        var rows = try await sql.select()
-            .column(Student.all)
+        var rows = try await sql.selectWithColumn(Student.all)
             .from(Student.self)
             .where(Student.age, .greaterThanOrEqual , 42)
-            .all(decoding: StudentAll.self)
+            .all()
 
         XCTAssertEqual(rows.count, 1)
 
@@ -51,22 +61,17 @@ final class SQLKitTypingTests: XCTestCase {
             .column(Student.all)
             .from(Student.self)
             .where(Student.age, .is, SQLLiteral.null)
-            .all(decoding: StudentAll.self)
+            .all(decoding: StudentTypes.All.self)
 
         XCTAssertEqual(rows.count, 2)
     }
 
     func testColumnWithTable() async throws {
-        struct Row: Decodable {
-            var subject: String
-        }
-
-        let rows = try await sql.select()
-            .column(Lesson.subject)
+        let rows = try await sql.selectWithColumn(Lesson.subject)
             .from(School.self)
             .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
             .where(School.id.withTable, .equal, school1ID)
-            .all(decoding: Row.self)
+            .all()
 
         XCTAssertEqual(rows.count, 3)
         XCTAssertEqual(Set(rows.map(\.subject)), ["foo", "bar", "baz"])
@@ -80,28 +85,23 @@ final class SQLKitTypingTests: XCTestCase {
     }
 
     func testJoinedColumn() async throws {
-        struct Row: Decodable, Identifiable {
-            @TypeOf(Lesson.id) var id
-            @TypeOf(Lesson.subject) var subject
-            @TypeOf(School.name) var schoolName
+        let rows = try await sql.selectWithColumns {
+            Lesson.all
+            School.name
         }
-
-        let rows = try await sql.select()
-            .column(Lesson.all)
-            .column(School.name, as: "schoolName")
             .from(School.self)
             .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
-            .all(decoding: Row.self)
+            .all()
 
         XCTAssertEqual(rows.count, 9)
-        XCTAssertEqual(Set(rows.map(\.schoolName)), ["shibuya", "shinjyuku", "ikebukuro"])
+        XCTAssertEqual(Set(rows.map(\.name)), ["shibuya", "shinjyuku", "ikebukuro"])
     }
 
     func testParentEagerLoad() async throws {
         struct SchoolWithLessons: Decodable, Identifiable {
             @TypeOf(School.id) var id
             @TypeOf(School.name) var name
-            var lessons: [LessonAll] = []
+            var lessons: [LessonTypes.All] = []
 
             enum CodingKeys: String, CodingKey {
                 case id
@@ -129,7 +129,7 @@ final class SQLKitTypingTests: XCTestCase {
         struct SchoolWithStudents: Decodable, Identifiable {
             @TypeOf(School.id) var id
             @TypeOf(School.name) var name
-            var students: [StudentAll] = []
+            var students: [StudentTypes.All] = []
 
             enum CodingKeys: String, CodingKey {
                 case id

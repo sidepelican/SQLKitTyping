@@ -7,7 +7,6 @@ import SQLKitTypingMacros
 
 private let allMacro: [String: any Macro.Type] = [
     "Schema": Schema.self,
-    "Column": Column.self,
     "EraseProperty": EraseProperty.self,
 ]
 
@@ -35,26 +34,18 @@ struct Test {
         }
     }
 
-    /// => value: Int
-    static let value = Test_types.__value()
-
-    typealias All = Test_types.__allProperty
-
-    static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
-}
-
-enum Test_types {
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var value: Int
     }
+
+    static let all = AllPropertyExpression<Test, __allProperty>()
+
     struct __value: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
         typealias Value = Int
-
         var name: String {
             "value"
         }
-
         struct Property: Decodable {
             var value: Int
             enum CodingKeys: CodingKey {
@@ -65,6 +56,13 @@ enum Test_types {
             }
         }
     }
+
+    /// => value: Int
+    static let value = __value()
+}
+
+enum TestTypes {
+    typealias All = Test.__allProperty
 }
 """#,
 macros: allMacro
@@ -81,26 +79,21 @@ public struct Test {
 """,
 expandedSource: #"""
 public struct Test {
-    @EraseProperty @Column(namespace: "Test_types")
+    @EraseProperty
     public var fooBar: Int?
 
-    public typealias All = Test_types.__allProperty
-
-    public static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
-}
-
-public enum Test_types {
-    public struct __allProperty: Decodable {
+    public struct __allProperty: Codable {
         public var fooBar: Int?
     }
+
+    public static let all = AllPropertyExpression<Test, __allProperty>()
+
     public struct __fooBar: TypedSQLColumn, PropertySQLExpression {
         public typealias Schema = Test
         public typealias Value = Int?
-
         public var name: String {
             "fooBar"
         }
-
         public struct Property: Decodable {
             public var fooBar: Int?
             public enum CodingKeys: CodingKey {
@@ -111,6 +104,13 @@ public enum Test_types {
             }
         }
     }
+
+    /// => fooBar: Int?
+    public static let fooBar = __fooBar()
+}
+
+public enum TestTypes {
+    public typealias All = Test.__allProperty
 }
 """#,
 macros: [
@@ -133,14 +133,14 @@ struct Test {
     static let tableName: String = "foo"
     var computed: Int { 42 }
 
-    typealias All = Test_types.__allProperty
+    struct __allProperty: Codable {
+    }
 
-    static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
+    static let all = AllPropertyExpression<Test, __allProperty>()
 }
 
-enum Test_types {
-    struct __allProperty: Decodable {
-    }
+enum TestTypes {
+    typealias All = Test.__allProperty
 }
 """,
 macros: schemaMacro
@@ -159,14 +159,14 @@ expandedSource: #"""
 struct Test {
     var wrapper = ""
 
-    typealias All = Test_types.__allProperty
+    struct __allProperty: Codable {
+    }
 
-    static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
+    static let all = AllPropertyExpression<Test, __allProperty>()
 }
 
-enum Test_types {
-    struct __allProperty: Decodable {
-    }
+enum TestTypes {
+    typealias All = Test.__allProperty
 }
 """#,
 diagnostics: [
@@ -186,6 +186,7 @@ struct Test {
 }
 """,
 expandedSource: #"""
+
 struct Test {
     var `class`: Class {
         @available(*, unavailable)
@@ -193,9 +194,6 @@ struct Test {
             fatalError()
         }
     }
-
-    /// => `class`: Class
-    static let `class` = Test_types.__class()
     var `struct`: Int {
         @available(*, unavailable)
         get {
@@ -203,27 +201,19 @@ struct Test {
         }
     }
 
-    /// => `struct`: Int
-    static let `struct` = Test_types.__struct()
-
-    typealias All = Test_types.__allProperty
-
-    static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
-}
-
-enum Test_types {
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var `class`: Class
         var `struct`: Int
     }
+
+    static let all = AllPropertyExpression<Test, __allProperty>()
+
     struct __class: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
         typealias Value = Class
-
         var name: String {
             "class"
         }
-
         struct Property: Decodable {
             var `class`: Class
             enum CodingKeys: CodingKey {
@@ -234,14 +224,16 @@ enum Test_types {
             }
         }
     }
+
+    /// => `class`: Class
+    static let `class` = __class()
+
     struct __struct: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
         typealias Value = Int
-
         var name: String {
             "struct"
         }
-
         struct Property: Decodable {
             var `struct`: Int
             enum CodingKeys: CodingKey {
@@ -252,6 +244,13 @@ enum Test_types {
             }
         }
     }
+
+    /// => `struct`: Int
+    static let `struct` = __struct()
+}
+
+enum TestTypes {
+    typealias All = Test.__allProperty
 }
 """#,
 macros: allMacro
@@ -268,26 +267,21 @@ enum Test {
 """,
 expandedSource: #"""
 enum Test {
-    @EraseProperty @Column(namespace: "Test_types")
+    @EraseProperty
     var value: Int
 
-    typealias All = Test_types.__allProperty
-
-    static let all = AllPropertyExpression<Test, Test_types.__allProperty>()
-}
-
-enum Test_types {
-    struct __allProperty: Decodable {
+    struct __allProperty: Codable {
         var value: Int
     }
+
+    static let all = AllPropertyExpression<Test, __allProperty>()
+
     struct __value: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
         typealias Value = Int
-
         var name: String {
             "value"
         }
-
         struct Property: Decodable {
             var value: Int
             enum CodingKeys: CodingKey {
@@ -298,6 +292,13 @@ enum Test_types {
             }
         }
     }
+
+    /// => value: Int
+    static let value = __value()
+}
+
+enum TestTypes {
+    typealias All = Test.__allProperty
 }
 """#,
 macros: schemaMacro

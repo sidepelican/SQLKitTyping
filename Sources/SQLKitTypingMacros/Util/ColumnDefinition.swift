@@ -47,7 +47,7 @@ struct ColumnDefinition {
         self.columnType = columnType
         self.columnTypeName = columnName.firstUpper
         typealiasName = "__\(columnName)"
-        modifiers = varDecl.modifiers
+        modifiers = varDecl.modifiers.trimmed
     }
 }
 

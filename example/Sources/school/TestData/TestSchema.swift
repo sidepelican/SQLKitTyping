@@ -1,39 +1,45 @@
-@preconcurrency import Foundation
+import Foundation
 import SQLKitTyping
 
+@Schema
 enum Student: IDSchemaProtocol {
     static var tableName: String { "students" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let name = Column<String>("name")
-    static let age = Column<Int?>("age")
+    let id: ID
+    let name: String
+    let age: Int?
 }
 
+@Schema
 enum School: IDSchemaProtocol {
     static var tableName: String { "schools" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let name = Column<String>("name")
+    let id: ID
+    let name: String
 }
 
+@Schema
 enum SchoolStudentRelation: RelationSchemaProtocol {
     static var tableName: String { "schools_students" }
 
-    static let schoolID = Column<School.ID>("schoolID")
-    static let studentID = Column<Student.ID>("studentID")
+    let schoolID: School.ID
+    let studentID: Student.ID
 
     static var relation: PivotJoinRelation<Self, School.ID, Student.ID> {
         .init(from: schoolID, to: studentID)
     }
 }
 
+@Schema
 enum Lesson: IDSchemaProtocol {
     static var tableName: String { "lessons" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let subject = Column<String>("subject")
-    static let schoolID = Column<School.ID>("schoolID")
+    let id: ID
+    let subject: String
+    let schoolID: School.ID
+    let date: Date?
+    let createdAt: Date
 }
