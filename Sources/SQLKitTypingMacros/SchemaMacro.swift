@@ -50,7 +50,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
 
         func buildAllType() throws -> StructDeclSyntax {
-            return try StructDeclSyntax("\(modifiers)struct __allProperty: Decodable") {
+            return try StructDeclSyntax("\(modifiers)struct __allProperty: Codable") {
                 for (i, def) in columnDefs.enumerated() {
                     let modifiers = def.modifiers.with(\.trailingTrivia, .space)
                     try VariableDeclSyntax(

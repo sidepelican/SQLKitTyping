@@ -4,9 +4,9 @@ import SQLiteKit
 import XCTest
 
 final class SchoolTests: XCTestCase {
-    static nonisolated(unsafe) var sql: Task<any SQLDatabase, any Error>?
-    var sql: any SQLDatabase { 
-        get async throws { try await Self.sql!.value }
+    static nonisolated(unsafe) var sql: Task<(any SQLDatabase, SQLiteConnection), any Error>?
+    var sql: any SQLDatabase {
+        get async throws { try await Self.sql!.value.0 }
     }
 
     class override func setUp() {
@@ -19,10 +19,24 @@ final class SchoolTests: XCTestCase {
 
         Self.sql = Task {
             let conn = try await source.makeConnection(logger: logger, on: MultiThreadedEventLoopGroup.singleton.next()).get()
-            let sql = conn.sql(queryLogLevel: .info)
-            try await resetTestDatabase(sql: sql)
-            return sql
+            do {
+                let sql = conn.sql(queryLogLevel: .info)
+                try await resetTestDatabase(sql: sql)
+                return (sql, conn)
+            } catch {
+                print(String(reflecting: error))
+                try! await conn.close()
+                throw error
+            }
         }
+    }
+
+    class override func tearDown() {
+        Task {
+            try await Self.sql?.value.1.close()
+            Self.sql = nil
+        }
+        super.tearDown()
     }
 
     func testVersion() async throws {
@@ -36,11 +50,10 @@ final class SchoolTests: XCTestCase {
     }
 
     func testTypedColumn() async throws {
-        var rows = try await sql.select()
-            .column(Student.all)
+        var rows = try await sql.selectWithColumn(Student.all)
             .from(Student.self)
             .where(Student.age, .greaterThanOrEqual , 42)
-            .all(decoding: StudentAll.self)
+            .all()
 
         XCTAssertEqual(rows.count, 1)
 
@@ -48,22 +61,17 @@ final class SchoolTests: XCTestCase {
             .column(Student.all)
             .from(Student.self)
             .where(Student.age, .is, SQLLiteral.null)
-            .all(decoding: StudentAll.self)
+            .all(decoding: StudentTypes.All.self)
 
         XCTAssertEqual(rows.count, 2)
     }
 
     func testColumnWithTable() async throws {
-        struct Row: Decodable {
-            var subject: String
-        }
-
-        let rows = try await sql.select()
-            .column(Lesson.subject)
+        let rows = try await sql.selectWithColumn(Lesson.subject)
             .from(School.self)
             .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
             .where(School.id.withTable, .equal, school1ID)
-            .all(decoding: Row.self)
+            .all()
 
         XCTAssertEqual(rows.count, 3)
         XCTAssertEqual(Set(rows.map(\.subject)), ["foo", "bar", "baz"])
@@ -77,28 +85,23 @@ final class SchoolTests: XCTestCase {
     }
 
     func testJoinedColumn() async throws {
-        struct Row: Decodable, Identifiable {
-            @TypeOf(Lesson.id) var id
-            @TypeOf(Lesson.subject) var subject
-            @TypeOf(School.name) var schoolName
+        let rows = try await sql.selectWithColumns {
+            Lesson.all
+            School.name
         }
-
-        let rows = try await sql.select()
-            .column(Lesson.all)
-            .column(School.name, as: "schoolName")
             .from(School.self)
             .join(Lesson.self, on: School.id, .equal, Lesson.schoolID)
-            .all(decoding: Row.self)
+            .all()
 
         XCTAssertEqual(rows.count, 9)
-        XCTAssertEqual(Set(rows.map(\.schoolName)), ["shibuya", "shinjyuku", "ikebukuro"])
+        XCTAssertEqual(Set(rows.map(\.name)), ["shibuya", "shinjyuku", "ikebukuro"])
     }
 
     func testParentEagerLoad() async throws {
         struct SchoolWithLessons: Decodable, Identifiable {
             @TypeOf(School.id) var id
             @TypeOf(School.name) var name
-            var lessons: [LessonAll] = []
+            var lessons: [LessonTypes.All] = []
 
             enum CodingKeys: String, CodingKey {
                 case id
@@ -126,7 +129,7 @@ final class SchoolTests: XCTestCase {
         struct SchoolWithStudents: Decodable, Identifiable {
             @TypeOf(School.id) var id
             @TypeOf(School.name) var name
-            var students: [StudentAll] = []
+            var students: [StudentTypes.All] = []
 
             enum CodingKeys: String, CodingKey {
                 case id

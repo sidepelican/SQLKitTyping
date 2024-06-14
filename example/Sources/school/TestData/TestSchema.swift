@@ -11,19 +11,21 @@ enum Student: IDSchemaProtocol {
     let age: Int?
 }
 
+@Schema
 enum School: IDSchemaProtocol {
     static var tableName: String { "schools" }
     typealias ID = GenericID<Self, UUID>
 
-    static let id = Column<ID>("id")
-    static let name = Column<String>("name")
+    let id: ID
+    let name: String
 }
 
+@Schema
 enum SchoolStudentRelation: RelationSchemaProtocol {
     static var tableName: String { "schools_students" }
 
-    static let schoolID = Column<School.ID>("schoolID")
-    static let studentID = Column<Student.ID>("studentID")
+    let schoolID: School.ID
+    let studentID: Student.ID
 
     static var relation: PivotJoinRelation<Self, School.ID, Student.ID> {
         .init(from: schoolID, to: studentID)
@@ -38,6 +40,6 @@ enum Lesson: IDSchemaProtocol {
     let id: ID
     let subject: String
     let schoolID: School.ID
-    let date: Date
+    let date: Date?
     let createdAt: Date
 }
