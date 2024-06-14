@@ -1,38 +1,35 @@
-import NIOCore
-import NIOPosix
 import SQLKit
 import SQLKitTyping
-import PostgresKit
+import SQLiteKit
 import XCTest
 
-final class SQLKitTypingTests: XCTestCase {
-    static var eventLoopGroup: EventLoopGroup!
-    static var sql: (any SQLDatabase)?
-    var sql: any SQLDatabase { Self.sql! }
+final class SchoolTests: XCTestCase {
+    static var sql: Task<any SQLDatabase, any Error>?
+    var sql: any SQLDatabase { 
+        get async throws { try await Self.sql!.value }
+    }
 
     class override func setUp() {
         super.setUp()
 
-        eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+        let source = SQLiteConnectionSource(
+            configuration: .init(storage: .memory)
+        )
+        let logger = Logger(label: "school")
 
-        let conn = try! PostgresConnection.test(on: eventLoopGroup.next()).wait()
-        let sql = conn.sql().print()
-        Self.sql = sql
-
-        try! resetTestDatabase(sql: sql)
-    }
-
-    class override func tearDown() {
-        try! eventLoopGroup.syncShutdownGracefully()
-
-        super.tearDown()
+        Self.sql = Task {
+            let conn = try await source.makeConnection(logger: logger, on: MultiThreadedEventLoopGroup.singleton.next()).get()
+            let sql = conn.sql(queryLogLevel: .info)
+            try resetTestDatabase(sql: sql)
+            return sql
+        }
     }
 
     func testVersion() async throws {
         struct Row: Decodable {
             var version: String
         }
-        let row = try await sql.raw("SELECT version();")
+        let row = try await sql.raw("SELECT sqlite_version() as version")
             .first(decoding: Row.self)
 
         print(try XCTUnwrap(row).version)

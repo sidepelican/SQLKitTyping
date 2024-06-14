@@ -13,7 +13,7 @@ defer {
 let source = SQLiteConnectionSource(
     configuration: .init(storage: .file(path: tmpDBPath))
 )
-let logger = Logger(label: "example")
+let logger = Logger(label: "shinook")
 
 let conn = try await source.makeConnection(logger: logger, on: MultiThreadedEventLoopGroup.singleton.next()).get()
 let sql = conn.sql(queryLogLevel: .info)
