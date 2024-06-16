@@ -35,7 +35,7 @@ func f(sql: some SQLDatabase) async throws {
             IngredientTable.all
         }
 
-    tests.first?.ingredients
+    _ = tests.first?.ingredients
 }
 
 fileprivate struct S {
