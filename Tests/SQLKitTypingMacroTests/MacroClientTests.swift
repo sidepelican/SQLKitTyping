@@ -1,20 +1,49 @@
 import XCTest
 import SQLKitTyping
 
-@Schema
-public enum TestTable: SchemaProtocol {
-    public static var tableName: String { "tests" }
+struct RecipeID: Hashable, Codable, Sendable {}
+struct IngredientID: Hashable, Codable, Sendable {}
 
-    fileprivate var foo: Int
-    var bar: String
+@Schema
+fileprivate enum RecipeTable: IDSchemaProtocol {
+    public static var tableName: String { "recipes" }
+
+    var id: RecipeID
+
+    var title: String
+    fileprivate var kcal: Int
+
+    @Children(for: \IngredientTable.recipeID)
+    public var ingredients: Any
+
+}
+
+@Schema
+enum IngredientTable: SchemaProtocol {
+    static var tableName: String { "ingredients" }
+
+    var recipeID: RecipeID
+    var order: Int
+    var name: String
+}
+
+func f(sql: some SQLDatabase) async throws {
+    let tests = try await sql.selectWithColumn(RecipeTable.all)
+        .from(RecipeTable.tableName)
+        .all()
+        .eagerLoad(sql: sql, for: \.id, RecipeTable.ingredients) {
+            IngredientTable.all
+        }
+
+    _ = tests.first?.ingredients
 }
 
 fileprivate struct S {
-    @TypeOf(TestTable.foo) var foo
-    @TypeOf(TestTable.bar) var bar
+    @TypeOf(RecipeTable.title) var foo
+    @TypeOf(IngredientTable.name) var bar
 }
 
 enum Foo {
     @EraseProperty
-    var enumProperty: Int
+    let enumProperty: Int
 }

@@ -74,7 +74,7 @@ final class SchoolTests: XCTestCase {
             .all()
 
         XCTAssertEqual(rows.count, 3)
-        XCTAssertEqual(Set(rows.map(\.subject)), ["foo", "bar", "baz"])
+        XCTAssertEqual(Set(rows.map(\.subject)), ["foo1", "bar1", "baz1"])
     }
 
     func testUpdateColumn() async throws {
@@ -98,31 +98,32 @@ final class SchoolTests: XCTestCase {
     }
 
     func testParentEagerLoad() async throws {
-        struct SchoolWithLessons: Decodable, Identifiable {
-            @TypeOf(School.id) var id
-            @TypeOf(School.name) var name
-            var lessons: [LessonTypes.All] = []
-
-            enum CodingKeys: String, CodingKey {
-                case id
-                case name
-            }
-        }
-
-        var row = try await sql.select()
-            .column(School.all)
+        let row = try await sql.selectWithColumn(School.all)
             .from(School.self)
             .where(School.id, .equal, school1ID)
-            .first(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &row, keyPath: \.lessons, column: Lesson.schoolID)
+            .first()
+            .eagerLoad(sql: sql, for: \.id, School.lessons) {
+                Lesson.all
+            }
         XCTAssertEqual(row?.lessons.count, 3)
+        XCTAssertEqual(row?.lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
 
-        var rows = try await sql.select()
-            .column(School.all)
+        let rows = try await sql.selectWithColumn(School.all)
             .from(School.self)
-            .all(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.lessons, column: Lesson.schoolID)
+            .orderBy(School.name)
+            .all()
+            .eagerLoad(sql: sql, for: \.id, School.lessons) {
+                Lesson.all
+            }
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
+        if rows.count == 3 {
+            XCTAssertEqual(rows[0].name, "ikebukuro")
+            XCTAssertEqual(rows[0].lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
+            XCTAssertEqual(rows[1].name, "shibuya")
+            XCTAssertEqual(rows[1].lessons.map { $0.subject }.sorted(), ["bar2", "baz2", "foo2"])
+            XCTAssertEqual(rows[2].name, "shinjyuku")
+            XCTAssertEqual(rows[2].lessons.map { $0.subject }.sorted(), ["bar3", "baz3", "foo3"])
+        }
     }
 
     func testPivotEagerLoad() async throws {

@@ -7,7 +7,7 @@ public struct SQLColumnPropertyType: DeclarationMacro {
         var name: String
     }
 
-    private static func extractArguments(from  arguments: LabeledExprListSyntax) throws -> Arguments {
+    private static func extractArguments(from arguments: LabeledExprListSyntax) throws -> Arguments {
         var name: String?
         for argument in arguments {
             if argument.label?.text == "name" {

@@ -59,8 +59,8 @@ func resetTestDatabase(sql: any SQLDatabase) async throws {
 
     try await sql.insert(into: School.self)
         .models([
-            SchoolTypes.All(id: school1ID, name: "shibuya"),
-            SchoolTypes.All(id: school2ID, name: "ikebukuro"),
+            SchoolTypes.All(id: school1ID, name: "ikebukuro"),
+            SchoolTypes.All(id: school2ID, name: "shibuya"),
             SchoolTypes.All(id: school3ID, name: "shinjyuku"),
         ], nilEncodingStrategy: .asNil)
         .run()
@@ -84,15 +84,15 @@ func resetTestDatabase(sql: any SQLDatabase) async throws {
         .columnsAndValues(
             columns: Lesson.id, Lesson.subject, Lesson.schoolID, Lesson.date,
             values: [
-                (.init(.init()), "foo", school1ID, .now),
-                (.init(.init()), "bar", school1ID, .now),
-                (.init(.init()), "baz", school1ID, .now),
-                (.init(.init()), "foo", school2ID, .now),
-                (.init(.init()), "bar", school2ID, .now),
-                (.init(.init()), "baz", school2ID, nil),
-                (.init(.init()), "foo", school3ID, nil),
-                (.init(.init()), "bar", school3ID, nil),
-                (.init(.init()), "baz", school3ID, nil),
+                (.init(.init()), "foo1", school1ID, .now),
+                (.init(.init()), "bar1", school1ID, .now),
+                (.init(.init()), "baz1", school1ID, .now),
+                (.init(.init()), "foo2", school2ID, .now),
+                (.init(.init()), "bar2", school2ID, .now),
+                (.init(.init()), "baz2", school2ID, nil),
+                (.init(.init()), "foo3", school3ID, nil),
+                (.init(.init()), "bar3", school3ID, nil),
+                (.init(.init()), "baz3", school3ID, nil),
             ]
         )
         .run()

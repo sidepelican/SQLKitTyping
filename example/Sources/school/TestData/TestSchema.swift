@@ -18,6 +18,9 @@ enum School: IDSchemaProtocol {
 
     let id: ID
     let name: String
+
+    @Children(for: \Lesson.schoolID)
+    let lessons: Any
 }
 
 @Schema
