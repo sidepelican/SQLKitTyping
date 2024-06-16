@@ -1,13 +1,11 @@
 import XCTest
 import SQLKitTyping
 
-//macro Children() = #externalMacro(module: "", type: "")
-
 struct RecipeID: Hashable, Codable, Sendable {}
 struct IngredientID: Hashable, Codable, Sendable {}
 
 @Schema
-public enum RecipeTable: IDSchemaProtocol {
+fileprivate enum RecipeTable: IDSchemaProtocol {
     public static var tableName: String { "recipes" }
 
     var id: RecipeID
@@ -15,18 +13,9 @@ public enum RecipeTable: IDSchemaProtocol {
     var title: String
     fileprivate var kcal: Int
 
-//    @Children(for: IngredientTable.recipeID)
-//    var ingredients: Never
+    @Children(for: \IngredientTable.recipeID)
+    public var ingredients: Any
 
-    struct __ingredients<Child: Decodable>: ChildrenProperty, Decodable {
-        var ingredients: [Child]
-    }
-    static func ingredients<Row: Decodable>() -> GenericReference<some TypedSQLColumn<IngredientTable, RecipeID>, __ingredients<Row>> {
-        return .init(
-            column: IngredientTable.recipeID,
-            initProperty: __ingredients.init
-        )
-    }
 }
 
 @Schema
