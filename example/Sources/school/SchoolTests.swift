@@ -109,7 +109,7 @@ final class SchoolTests: XCTestCase {
             }
         }
 
-        var row = try await sql.selectWithColumn(School.all)
+        let row = try await sql.selectWithColumn(School.all)
             .from(School.self)
             .where(School.id, .equal, school1ID)
             .first()
@@ -117,14 +117,24 @@ final class SchoolTests: XCTestCase {
                 Lesson.all
             }
         XCTAssertEqual(row?.lessons.count, 3)
+        XCTAssertEqual(row?.lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
 
-        var rows = try await sql.selectWithColumn(School.all)
+        let rows = try await sql.selectWithColumn(School.all)
             .from(School.self)
+            .orderBy(School.name)
             .all()
             .eagerLoad(sql: sql, for: \.id, School.lessons) {
                 Lesson.all
             }
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
+        if rows.count == 3 {
+            XCTAssertEqual(rows[0].name, "ikebukuro")
+            XCTAssertEqual(rows[0].lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
+            XCTAssertEqual(rows[1].name, "shibuya")
+            XCTAssertEqual(rows[1].lessons.map { $0.subject }.sorted(), ["bar2", "baz2", "foo2"])
+            XCTAssertEqual(rows[2].name, "shinjyuku")
+            XCTAssertEqual(rows[2].lessons.map { $0.subject }.sorted(), ["bar3", "baz3", "foo3"])
+        }
     }
 
     func testPivotEagerLoad() async throws {
