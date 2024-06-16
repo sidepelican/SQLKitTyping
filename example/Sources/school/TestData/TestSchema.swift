@@ -18,6 +18,16 @@ enum School: IDSchemaProtocol {
 
     let id: ID
     let name: String
+
+    struct __lessons<Child: Decodable>: ChildrenProperty, Decodable {
+        var lessons: [Child]
+    }
+    static func lessons<Row: Decodable>() -> GenericReference<some TypedSQLColumn<Lesson, School.ID>, __lessons<Row>> {
+        return .init(
+            column: Lesson.schoolID,
+            initProperty: __lessons.init
+        )
+    }
 }
 
 @Schema

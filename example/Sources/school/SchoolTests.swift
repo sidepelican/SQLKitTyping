@@ -109,19 +109,21 @@ final class SchoolTests: XCTestCase {
             }
         }
 
-        var row = try await sql.select()
-            .column(School.all)
+        var row = try await sql.selectWithColumn(School.all)
             .from(School.self)
             .where(School.id, .equal, school1ID)
-            .first(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &row, keyPath: \.lessons, column: Lesson.schoolID)
+            .first()
+            .eagerLoad(sql: sql, for: \.id, School.lessons) {
+                Lesson.all
+            }
         XCTAssertEqual(row?.lessons.count, 3)
 
-        var rows = try await sql.select()
-            .column(School.all)
+        var rows = try await sql.selectWithColumn(School.all)
             .from(School.self)
-            .all(decoding: SchoolWithLessons.self)
-        try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.lessons, column: Lesson.schoolID)
+            .all()
+            .eagerLoad(sql: sql, for: \.id, School.lessons) {
+                Lesson.all
+            }
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
     }
 
