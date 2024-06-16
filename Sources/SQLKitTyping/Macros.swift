@@ -11,6 +11,5 @@ public macro EraseProperty() = #externalMacro(module: "SQLKitTypingMacros", type
 @freestanding(declaration, names: arbitrary)
 public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKitTypingMacros", type: "SQLColumnPropertyType")
 
-@attached(accessor)
 @attached(peer, names: prefixed(__), overloaded)
 public macro Children<Schema: SchemaProtocol, T: Equatable>(for column: KeyPath<Schema, T>) = #externalMacro(module: "SQLKitTypingMacros", type: "ChildrenMacro")

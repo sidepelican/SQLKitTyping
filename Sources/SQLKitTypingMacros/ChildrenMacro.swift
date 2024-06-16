@@ -2,7 +2,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct ChildrenMacro: AccessorMacro, PeerMacro {
+public struct ChildrenMacro: PeerMacro {
     private struct Arguments {
         var column: KeyPathExprSyntax
     }
@@ -18,17 +18,6 @@ public struct ChildrenMacro: AccessorMacro, PeerMacro {
             throw MessageError("unexpected.")
         }
         return .init(column: column)
-    }
-
-    // MARK: - Accessor
-    
-    public static func expansion(
-        of node: AttributeSyntax,
-        providingAccessorsOf declaration: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [AccessorDeclSyntax] {
-        return []
-//        return try EraseProperty.expansion(of: node, providingAccessorsOf: declaration, in: context)
     }
 
     // MARK: - Peer
