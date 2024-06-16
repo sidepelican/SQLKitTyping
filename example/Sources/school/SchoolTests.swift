@@ -74,7 +74,7 @@ final class SchoolTests: XCTestCase {
             .all()
 
         XCTAssertEqual(rows.count, 3)
-        XCTAssertEqual(Set(rows.map(\.subject)), ["foo", "bar", "baz"])
+        XCTAssertEqual(Set(rows.map(\.subject)), ["foo1", "bar1", "baz1"])
     }
 
     func testUpdateColumn() async throws {
@@ -98,17 +98,6 @@ final class SchoolTests: XCTestCase {
     }
 
     func testParentEagerLoad() async throws {
-        struct SchoolWithLessons: Decodable, Identifiable {
-            @TypeOf(School.id) var id
-            @TypeOf(School.name) var name
-            var lessons: [LessonTypes.All] = []
-
-            enum CodingKeys: String, CodingKey {
-                case id
-                case name
-            }
-        }
-
         let row = try await sql.selectWithColumn(School.all)
             .from(School.self)
             .where(School.id, .equal, school1ID)
