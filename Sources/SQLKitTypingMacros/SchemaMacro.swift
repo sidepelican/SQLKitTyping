@@ -117,6 +117,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             DeclSyntax(try EnumDeclSyntax("\(modifiers)enum \(namedDecl.name.trimmed)Types") {
                 for def in columnDefs {
                     TypeAliasDeclSyntax(
+                        leadingTrivia: .docLineComment("/// => \(def.columnType)").appending(.newline),
                         modifiers: def.modifiers,
                         name: "\(raw: def.columnTypeName)",
                         initializer: TypeInitializerClauseSyntax(

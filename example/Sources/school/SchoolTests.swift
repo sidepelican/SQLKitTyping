@@ -129,8 +129,8 @@ final class SchoolTests: XCTestCase {
 
     func testPivotEagerLoad() async throws {
         struct SchoolWithStudents: Decodable, Identifiable {
-            @TypeOf(School.id) var id
-            @TypeOf(School.name) var name
+            var id: SchoolTypes.Id
+            var name: SchoolTypes.Name
             var students: [Student] = []
 
             enum CodingKeys: String, CodingKey {
