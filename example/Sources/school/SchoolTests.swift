@@ -57,11 +57,12 @@ final class SchoolTests: XCTestCase {
 
         XCTAssertEqual(rows.count, 1)
 
+        // Schema type can use on basic sqlkit way.
         rows = try await sql.select()
             .column(Student.all)
             .from(Student.self)
             .where(Student.age, .is, SQLLiteral.null)
-            .all(decoding: StudentTypes.All.self)
+            .all(decoding: Student.self)
 
         XCTAssertEqual(rows.count, 2)
     }
@@ -130,7 +131,7 @@ final class SchoolTests: XCTestCase {
         struct SchoolWithStudents: Decodable, Identifiable {
             @TypeOf(School.id) var id
             @TypeOf(School.name) var name
-            var students: [StudentTypes.All] = []
+            var students: [Student] = []
 
             enum CodingKeys: String, CodingKey {
                 case id

@@ -2,33 +2,33 @@ import Foundation
 import SQLKitTyping
 
 @Schema
-enum Student: IDSchemaProtocol {
+struct Student: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "students" }
     typealias ID = GenericID<Self, UUID>
 
-    let id: ID
-    let name: String
-    let age: Int?
+    var id: ID
+    var name: String
+    var age: Int?
 }
 
 @Schema
-enum School: IDSchemaProtocol {
+struct School: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "schools" }
     typealias ID = GenericID<Self, UUID>
 
-    let id: ID
-    let name: String
+    var id: ID
+    var name: String
 
     @Children(for: \Lesson.schoolID)
-    let lessons: Any
+    var lessons: Any
 }
 
 @Schema
-enum SchoolStudentRelation: RelationSchemaProtocol {
+struct SchoolStudentRelation: RelationSchemaProtocol, Codable, Sendable {
     static var tableName: String { "schools_students" }
 
-    let schoolID: School.ID
-    let studentID: Student.ID
+    var schoolID: School.ID
+    var studentID: Student.ID
 
     static var relation: PivotJoinRelation<Self, School.ID, Student.ID> {
         .init(from: schoolID, to: studentID)
@@ -36,13 +36,13 @@ enum SchoolStudentRelation: RelationSchemaProtocol {
 }
 
 @Schema
-enum Lesson: IDSchemaProtocol {
+struct Lesson: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "lessons" }
     typealias ID = GenericID<Self, UUID>
 
-    let id: ID
-    let subject: String
-    let schoolID: School.ID
-    let date: Date?
-    let createdAt: Date
+    var id: ID
+    var subject: String
+    var schoolID: School.ID
+    var date: Date?
+    var createdAt: Date
 }

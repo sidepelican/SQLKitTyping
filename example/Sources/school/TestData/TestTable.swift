@@ -49,19 +49,19 @@ func resetTestDatabase(sql: any SQLDatabase) async throws {
 
     try await sql.insert(into: Student.self)
         .models([
-            StudentTypes.All(id: student1ID, name: "ichiro", age: 42),
-            StudentTypes.All(id: student2ID, name: "jiro", age: nil),
-            StudentTypes.All(id: student3ID, name: "saburo", age: nil),
-            StudentTypes.All(id: student4ID, name: "shiro", age: 20),
-            StudentTypes.All(id: student5ID, name: "goro", age: 16),
+            Student(id: student1ID, name: "ichiro", age: 42),
+            Student(id: student2ID, name: "jiro", age: nil),
+            Student(id: student3ID, name: "saburo", age: nil),
+            Student(id: student4ID, name: "shiro", age: 20),
+            Student(id: student5ID, name: "goro", age: 16),
         ], nilEncodingStrategy: .asNil)
         .run()
 
     try await sql.insert(into: School.self)
         .models([
-            SchoolTypes.All(id: school1ID, name: "ikebukuro"),
-            SchoolTypes.All(id: school2ID, name: "shibuya"),
-            SchoolTypes.All(id: school3ID, name: "shinjyuku"),
+            School(id: school1ID, name: "ikebukuro"),
+            School(id: school2ID, name: "shibuya"),
+            School(id: school3ID, name: "shinjyuku"),
         ], nilEncodingStrategy: .asNil)
         .run()
 

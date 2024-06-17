@@ -36,7 +36,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                 \(modifiers)typealias Schema = \(namedDecl.name.trimmed)
                 \(modifiers)typealias Value = \(def.columnType)
                 \(modifiers)var name: String { "\(raw: def.columnName)" }
-                \(modifiers)struct Property: Decodable {
+                \(modifiers)struct Property: Decodable, Sendable {
                     \(modifiers)var \(def.varIdentifier): \(def.columnType)
                     \(modifiers)enum CodingKeys: CodingKey {
                         case \(def.varIdentifier)
@@ -47,23 +47,8 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             """
         }
 
-        let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
-
-        func buildAllType() throws -> StructDeclSyntax {
-            return try StructDeclSyntax("\(modifiers)struct __allProperty: Codable") {
-                for (i, def) in columnDefs.enumerated() {
-                    let modifiers = def.modifiers.with(\.trailingTrivia, .space)
-                    try VariableDeclSyntax(
-                        "\(modifiers)var \(def.varIdentifier): \(def.columnType)"
-                    )
-                    .with(\.leadingTrivia, i != 0 ? .newline : [])
-                }
-            }
-        }
-
         var result: [DeclSyntax] = []
-        result.append(DeclSyntax(try buildAllType()))
-        result.append("\(declaration.modifiers.adding(keyword: .static))let all = AllPropertyExpression<\(namedDecl.name.trimmed), __allProperty>()")
+        result.append("\(declaration.modifiers.adding(keyword: .static))let all = AllPropertyExpression<\(namedDecl.name.trimmed), \(namedDecl.name.trimmed)>()")
         for def in columnDefs {
             result.append(buildColumnType(def: def))
             result.append(DeclSyntax(VariableDeclSyntax(
@@ -103,18 +88,8 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                 AttributeSyntax(TypeSyntax("EraseProperty")),
             ]
         }
-
-        guard let _ = ColumnDefinition(
-            decl: member,
-            in: context,
-            emitsDiagnostics: false
-        ) else {
-            return []
-        }
-
-        return [
-            AttributeSyntax(TypeSyntax("EraseProperty")),
-        ]
+        
+        return []
     }
 
     // MARK: - Peer
@@ -129,15 +104,26 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             return []
         }
 
+        let columnDefs = declGroup.memberBlock.members.compactMap {
+            ColumnDefinition(
+                decl: $0.decl,
+                in: context,
+                emitsDiagnostics: true
+            )
+        }
         let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)
 
         return [
             DeclSyntax(try EnumDeclSyntax("\(modifiers)enum \(namedDecl.name.trimmed)Types") {
-                TypeAliasDeclSyntax(
-                    modifiers: modifiers,
-                    name: "All",
-                    initializer: TypeInitializerClauseSyntax(value: "\(namedDecl.name.trimmed).__allProperty" as TypeSyntax)
-                )
+                for def in columnDefs {
+                    TypeAliasDeclSyntax(
+                        modifiers: def.modifiers,
+                        name: "\(raw: def.columnTypeName)",
+                        initializer: TypeInitializerClauseSyntax(
+                            value: "\(namedDecl.name.trimmed).\(raw: def.typealiasName).Value" as TypeSyntax
+                        )
+                    )
+                }
             })
         ]
     }
