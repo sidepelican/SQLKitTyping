@@ -20,23 +20,27 @@ extension Array {
         for idKeyPath: KeyPath<Element, Ref.Column.Value>,
         _ ref: () -> Ref,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Child>
+        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Child>,
+        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
         let ref = ref()
         let ids = self.map { $0[keyPath: idKeyPath] }
 
-        let allChildren = try await sql.select()
+        let query = sql.select()
             .column(ref.column, as: "__id")
             .columns(buildColumns().columns)
             .from(Ref.Column.Schema.self)
             .where(ref.column, .in, SQLBind.group(ids))
+        buildOrderBy(query)
+        let allChildren = try await query
             .all(
                 decoding: RowWithInternalID<Ref.Column.Value, Ref.Child>.self,
                 userInfo: userInfo
             )
 
         return self.map { row in
-            let children = allChildren.filter { $0.__id == row[keyPath: idKeyPath] }.map(\.row)
+            let rowID = row[keyPath: idKeyPath]
+            let children = allChildren.filter { $0.__id == rowID }.map(\.row)
             let childrenProperty = ref.initProperty(children)
             return .init((row, childrenProperty))
         }
@@ -51,7 +55,8 @@ extension Optional {
         for idKeyPath: KeyPath<Wrapped, Ref.Column.Value>,
         _ ref: () -> Ref,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Child>
+        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Child>,
+        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
         guard let self else {
             return nil
@@ -59,10 +64,12 @@ extension Optional {
         let ref = ref()
         let id = self[keyPath: idKeyPath]
 
-        let children = try await sql.select()
+        let query = sql.select()
             .columns(buildColumns().columns)
             .from(Ref.Column.Schema.self)
             .where(ref.column, .equal, id)
+        buildOrderBy(query)
+        let children = try await query
             .all(
                 decoding: Ref.Child.self,
                 userInfo: userInfo
