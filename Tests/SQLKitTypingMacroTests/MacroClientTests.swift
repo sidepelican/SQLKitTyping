@@ -88,7 +88,7 @@ func f(sql: some SQLDatabase) async throws {
             mappingKey: \.recipeID,
             propertyInit: SQL.ingredients.Property.init
         )
-        .eagerLoadMany(sql: sql, for: \.id, reference: RecipeModel.steps()) {
+        .eagerLoadMany(sql: sql, for: \.id, with: RecipeModel.steps.self) {
             $0.orderBy(StepModel.order)
         }
 
@@ -100,7 +100,7 @@ func g(sql: some SQLDatabase) async throws {
     let tests = try await sql.selectWithColumn(StepModel.all)
         .from(StepModel.tableName)
         .all()
-        .eagerLoadOne(sql: sql, mappedBy: \.recipeID, reference: StepModel.recipe())
+        .eagerLoadOne(sql: sql, mappedBy: \.recipeID, with: StepModel.recipe.self)
         .eagerLoadOne(
             idKey: \.photoID,
             fetch: { ids in
@@ -110,9 +110,9 @@ func g(sql: some SQLDatabase) async throws {
                     .all()
             },
             mappingKey: \.id,
-            propertyInit: SQL.photo.Property.init
+            propertyInit: StepModel.photo.init
         )
-        .eagerLoadOne(sql: sql, mappedBy: \.photoID, reference: StepModel.photo())
+        .eagerLoadOne(sql: sql, mappedBy: \.photoID, with: StepModel.photo.self)
 
     _ = tests.first?.recipe.title
     _ = tests.first?.photo?.filename

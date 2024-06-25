@@ -18,7 +18,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Element, Ref.Column.Value>,
-        reference: Ref,
+        with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
@@ -71,7 +71,7 @@ extension Optional {
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Wrapped, Ref.Column.Value>,
-        reference: Ref,
+        with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
@@ -117,7 +117,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID>,
-        reference: Ref,
+        with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
@@ -148,7 +148,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID?>,
-        reference: Ref,
+        with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, NullableProperty<Ref.Property>>] {

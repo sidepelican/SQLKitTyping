@@ -2,12 +2,12 @@ public protocol HasManyReference<Column, Property> {
     associatedtype Column: TypedSQLColumn where Column.Value: Hashable
     associatedtype Property
     associatedtype Model: Decodable
-    var column: Column { get }
-    var initProperty: ([Model]) -> Property { get }
+    static var column: Column { get }
+    static var initProperty: ([Model]) -> Property { get }
 }
 
 public protocol HasOneReference<Property> {
     associatedtype Property
     associatedtype Model: Decodable & IDSchemaProtocol
-    var initProperty: (Model) -> Property { get }
+    static var initProperty: (Model) -> Property { get }
 }

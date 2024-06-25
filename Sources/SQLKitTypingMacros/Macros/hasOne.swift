@@ -45,15 +45,13 @@ public struct hasOne: DeclarationMacro {
         }
 
         return ["""
-        public struct __\(name)Reference: HasOneReference {
-            public struct Property: Decodable {
-                public var \(name): \(schemaType)
-            }
-            public var initProperty: (\(schemaType)) -> Property {
+        public struct \(name): Decodable, HasOneReference {
+            public var \(name): \(schemaType)
+            public typealias Property = Self
+            public static var initProperty: (\(schemaType)) -> Property {
                 return Property.init
             }
         }
-        public static func \(name)() -> __\(name)Reference { .init() }
         """]
     }
 }

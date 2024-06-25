@@ -46,16 +46,15 @@ public struct hasMany: DeclarationMacro {
         let columnRefIdentifier = "\(schemaType)\(arguments.column.components)" as TokenSyntax
 
         return ["""
-        public struct __\(name)Reference: HasManyReference {
-            public struct Property: Decodable {
-                public var \(name): [\(schemaType)]
-            }
-            public let column = \(columnRefIdentifier)
-            public var initProperty: ([\(schemaType)]) -> Property {
+        public struct \(name): Decodable, HasManyReference {
+            public var \(name): [\(schemaType)]
+
+            public static let column = \(columnRefIdentifier)
+            public typealias Property = Self
+            public static var initProperty: ([\(schemaType)]) -> Property {
                 return Property.init
             }
         }
-        public static func \(name)() -> __\(name)Reference { .init() }
         """]
     }
 }
