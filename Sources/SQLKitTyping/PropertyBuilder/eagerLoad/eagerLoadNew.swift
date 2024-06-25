@@ -118,8 +118,7 @@ extension Array {
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID>,
         with reference: Ref.Type,
-        userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
+        userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, Ref.Property>] {
         return try await eagerLoadOne(
             idKey: idKeyPath,
@@ -129,7 +128,6 @@ extension Array {
                     .columns(SQLLiteral.all)
                     .from(Ref.Model.self)
                     .where(Ref.Model.id, .in, SQLBind.group(ids))
-                buildOrderBy(query)
                 return try await query
                     .all(
                         decoding: RowWithInternalID<Ref.Model.ID, Ref.Model>.self,
@@ -149,8 +147,7 @@ extension Array {
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID?>,
         with reference: Ref.Type,
-        userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
+        userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, NullableProperty<Ref.Property>>] {
         return try await eagerLoadOne(
             idKey: idKeyPath,
@@ -160,7 +157,6 @@ extension Array {
                     .columns(SQLLiteral.all)
                     .from(Ref.Model.self)
                     .where(Ref.Model.id, .in, SQLBind.group(ids))
-                buildOrderBy(query)
                 return try await query
                     .all(
                         decoding: RowWithInternalID<Ref.Model.ID, Ref.Model>.self,
