@@ -28,7 +28,7 @@ struct ColumnDefinition {
         }
         if varDecl.attributes.contains(where: {
             if case .attribute(let attribute) = $0 {
-                return attribute.attributeName.description == "Children"
+                return ["Children", "Parent"].contains(attribute.attributeName.description)
             }
             return false
         }) {

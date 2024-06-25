@@ -5,7 +5,7 @@ struct RecipeID: Hashable, Codable, Sendable {}
 struct PhotoID: Hashable, Codable, Sendable {}
 
 @Schema
-fileprivate struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
+struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     public static var tableName: String { "recipes" }
 
     var id: RecipeID
@@ -13,11 +13,15 @@ fileprivate struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     var title: String
     fileprivate var kcal: Int
 
-    @Children(for: \IngredientModel.recipeID)
-    public var ingredients: Any
+    #Children(
+        name: "ingredients",
+        from: \IngredientModel.recipeID
+    )
 
-    @Children(for: \StepModel.recipeID)
-    public var steps: Any
+    #Children(
+        name: "steps",
+        from: \StepModel.recipeID
+    )
 }
 
 @Schema
@@ -25,6 +29,20 @@ struct IngredientModel: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "ingredients" }
 
     var recipeID: RecipeID
+
+//    @Parent(by: \Self.recipeID)
+//    var recipe: RecipeModel
+
+//    public struct __recipe<Child: Decodable>: ParentProperty, Decodable {
+//        public var recipe: Child
+//    }
+//    public static func recipe<Row: Decodable>() -> _ParentReference<some TypedSQLColumn<Self, RecipeModel.ID>, __recipe<Row>> {
+//        return .init(
+//            column: Self.recipeID,
+//            initProperty: __recipe.init
+//        )
+//    }
+
     var order: Int
     var name: String
 }
@@ -48,18 +66,27 @@ struct PhotoModel: SchemaProtocol, Codable, Sendable {
     var filename: String
 }
 
+struct Ingredients<T: Decodable>: Decodable {
+    var ingredients: [T]
+}
+
 func f(sql: some SQLDatabase) async throws {
+
     let tests = try await sql.selectWithColumn(RecipeModel.all)
         .from(RecipeModel.tableName)
         .all()
-        .eagerLoad(sql: sql, for: \.id, RecipeModel.ingredients) {
-            IngredientModel.all
-        } buildOrderBy: {
-            $0.orderBy(IngredientModel.order)
-        }
-        .eagerLoad(sql: sql, for: \.id, RecipeModel.steps) {
-            StepModel.all
-        } buildOrderBy: {
+        .eagerLoadChildren(
+            idKey: \.id,
+            fetch: { ids in
+                try await sql.selectWithColumn(IngredientModel.all)
+                    .from(IngredientModel.self)
+                    .where(IngredientModel.recipeID, .in, SQLBind.group(ids))
+                    .all()
+            },
+            parentKey: \.recipeID,
+            childrenPropertyInit: Ingredients<IngredientModel>.init
+        )
+        .eagerLoad(sql: sql, for: \.id, children: RecipeModel.steps()) {
             $0.orderBy(StepModel.order)
         }
 
@@ -68,8 +95,8 @@ func f(sql: some SQLDatabase) async throws {
 }
 
 fileprivate struct S {
-    @TypeOf(RecipeModel.title) var foo
-    @TypeOf(IngredientModel.name) var bar
+    var foo: RecipeModelTypes.Title
+    var bar: RecipeModelTypes.Kcal
 }
 
 enum Foo {

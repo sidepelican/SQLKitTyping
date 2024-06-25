@@ -88,7 +88,18 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                 AttributeSyntax(TypeSyntax("EraseProperty")),
             ]
         }
-        
+
+        if member.as(VariableDeclSyntax.self)?.attributes.contains(where: {
+            if case .attribute(let attribute) = $0 {
+                return attribute.attributeName.trimmed.description == "Parent"
+            }
+            return false
+        }) == true {
+            return [
+                AttributeSyntax(TypeSyntax("EraseProperty")),
+            ]
+        }
+
         return []
     }
 
