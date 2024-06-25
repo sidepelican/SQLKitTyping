@@ -12,10 +12,10 @@ public macro EraseProperty() = #externalMacro(module: "SQLKitTypingMacros", type
 public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKitTypingMacros", type: "SQLColumnPropertyType")
 
 @freestanding(declaration, names: arbitrary)
-public macro Children<Schema: SchemaProtocol, T: Equatable>(
+public macro hasMany<Schema: SchemaProtocol, T: Equatable>(
     name: String,
-    from column: KeyPath<Schema, T>
-) = #externalMacro(module: "SQLKitTypingMacros", type: "Children")
+    mappedBy column: KeyPath<Schema, T>
+) = #externalMacro(module: "SQLKitTypingMacros", type: "hasMany")
 
 //@attached(peer, names: prefixed(__), overloaded)
 //public macro Parent<Schema: SchemaProtocol, T: Equatable>(by column: KeyPath<Schema, T>) = #externalMacro(module: "SQLKitTypingMacros", type: "Parent")

@@ -13,14 +13,14 @@ struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     var title: String
     fileprivate var kcal: Int
 
-    #Children(
+    #hasMany(
         name: "ingredients",
-        from: \IngredientModel.recipeID
+        mappedBy: \IngredientModel.recipeID
     )
 
-    #Children(
+    #hasMany(
         name: "steps",
-        from: \StepModel.recipeID
+        mappedBy: \StepModel.recipeID
     )
 }
 
@@ -75,7 +75,7 @@ func f(sql: some SQLDatabase) async throws {
     let tests = try await sql.selectWithColumn(RecipeModel.all)
         .from(RecipeModel.tableName)
         .all()
-        .eagerLoadChildren(
+        .eagerLoad(
             idKey: \.id,
             fetch: { ids in
                 try await sql.selectWithColumn(IngredientModel.all)
@@ -83,10 +83,10 @@ func f(sql: some SQLDatabase) async throws {
                     .where(IngredientModel.recipeID, .in, SQLBind.group(ids))
                     .all()
             },
-            parentKey: \.recipeID,
-            childrenPropertyInit: Ingredients<IngredientModel>.init
+            mappingKey: \.recipeID,
+            propertyInit: Ingredients<IngredientModel>.init
         )
-        .eagerLoad(sql: sql, for: \.id, children: RecipeModel.steps()) {
+        .eagerLoad(sql: sql, for: \.id, reference: RecipeModel.steps()) {
             $0.orderBy(StepModel.order)
         }
 

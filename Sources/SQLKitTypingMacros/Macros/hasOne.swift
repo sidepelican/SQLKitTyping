@@ -2,7 +2,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct Parent: PeerMacro {
+public struct hasOne: PeerMacro {
     private struct Arguments {
         var column: KeyPathExprSyntax
     }

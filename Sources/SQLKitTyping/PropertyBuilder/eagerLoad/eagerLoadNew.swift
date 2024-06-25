@@ -14,77 +14,64 @@ struct RowWithInternalID<ID: Decodable, Row: Decodable>: Decodable {
 
 extension Array {
     public func eagerLoad<
-        Ref: ChildrenReference
+        Ref: HasManyReference
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Element, Ref.Column.Value>,
-        children ref: Ref,
+        reference: Ref,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
-        return try await eagerLoadChildren(
+        return try await eagerLoad(
             idKey: idKeyPath,
             fetch: { ids in
                 let query = sql.select()
-                    .column(ref.column, as: "__id")
+                    .column(reference.column, as: "__id")
                     .columns(SQLLiteral.all)
                     .from(Ref.Column.Schema.self)
-                    .where(ref.column, .in, SQLBind.group(ids))
+                    .where(reference.column, .in, SQLBind.group(ids))
                 buildOrderBy(query)
                 return try await query
                     .all(
-                        decoding: RowWithInternalID<Ref.Column.Value, Ref.Child>.self,
+                        decoding: RowWithInternalID<Ref.Column.Value, Ref.Model>.self,
                         userInfo: userInfo
                     )
             },
-            parentKey: \RowWithInternalID<Ref.Column.Value, Ref.Child>.__id,
-            childrenPropertyInit: {
-                ref.initProperty($0.map(\.row))
+            mappingKey: \RowWithInternalID<Ref.Column.Value, Ref.Model>.__id,
+            propertyInit: {
+                reference.initProperty($0.map(\.row))
             }
         )
     }
 
-    public func eagerLoadChildren<
-        ID: Equatable, Child, ChildrenPropertyType
+    public func eagerLoad<
+        ID: Hashable, Many, ManyPropertyType
     >(
         idKey idKeyPath: KeyPath<Element, ID>,
-        fetch: ([ID]) async throws -> [Child],
-        parentKey parentKeyPath: KeyPath<Child, ID>,
-        childrenPropertyInit: ([Child]) -> ChildrenPropertyType
-    )  async throws -> [Intersection2<Element, ChildrenPropertyType>] {
+        fetch: ([ID]) async throws -> [Many],
+        mappingKey: KeyPath<Many, ID>,
+        propertyInit: ([Many]) -> ManyPropertyType
+    )  async throws -> [Intersection2<Element, ManyPropertyType>] {
         let ids = self.map { $0[keyPath: idKeyPath] }
 
         let allChildren = try await fetch(ids)
+        let childrenMap = Dictionary(grouping: allChildren, by: { $0[keyPath: mappingKey] })
 
         return self.map { row in
             let rowID = row[keyPath: idKeyPath]
-            let children = allChildren.filter { $0[keyPath: parentKeyPath] == rowID }
-            return .init((row, childrenPropertyInit(children)))
+            let children = childrenMap[rowID] ?? []
+            return .init((row, propertyInit(children)))
         }
-    }
-}
-
-fileprivate func addChildren<Element, Child, Property, ID: Equatable>(
-    array: [Element],
-    elementIDKeyPath: KeyPath<Element, ID>,
-    allChildren: [RowWithInternalID<ID, Child>],
-    initProperty: ([Child]) -> Property
-) -> [Intersection2<Element, Property>] {
-    return array.map { row in
-        let rowID = row[keyPath: elementIDKeyPath]
-        let children = allChildren.filter { $0.__id == rowID }.map(\.row)
-        let childrenProperty = initProperty(children)
-        return .init((row, childrenProperty))
     }
 }
 
 extension Optional {
     public func eagerLoad<
-        Ref: ChildrenReference
+        Ref: HasManyReference
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Wrapped, Ref.Column.Value>,
-        children ref: Ref,
+        reference: Ref,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
@@ -94,83 +81,92 @@ extension Optional {
                 let query = sql.select()
                     .columns(SQLLiteral.all)
                     .from(Ref.Column.Schema.self)
-                    .where(ref.column, .equal, id)
+                    .where(reference.column, .equal, id)
                 buildOrderBy(query)
                 return try await query
                     .all(
-                        decoding: Ref.Child.self,
+                        decoding: Ref.Model.self,
                         userInfo: userInfo
                     )
             },
-            childrenPropertyInit: {
-                ref.initProperty($0)
+            propertyInit: {
+                reference.initProperty($0)
             }
         )
     }
 
     public func eagerLoadChildren<
-        ID: Equatable, Child, ChildrenPropertyType
+        ID: Equatable, Many, ManyPropertyType
     >(
         idKey idKeyPath: KeyPath<Wrapped, ID>,
-        fetch: (ID) async throws -> [Child],
-        childrenPropertyInit: ([Child]) -> ChildrenPropertyType
-    )  async throws -> Intersection2<Wrapped, ChildrenPropertyType>? {
+        fetch: (ID) async throws -> [Many],
+        propertyInit: ([Many]) -> ManyPropertyType
+    )  async throws -> Intersection2<Wrapped, ManyPropertyType>? {
         guard let self else {
             return nil
         }
         let id = self[keyPath: idKeyPath]
         let children = try await fetch(id)
-        return .init((self, childrenPropertyInit(children)))
+        return .init((self, propertyInit(children)))
     }
 }
 
 //extension Array {
 //    public func eagerLoad<
-//        Ref: ParentReference
+//        Ref: HasOneReference
 //    >(
 //        sql: any SQLDatabase,
 //        for idKeyPath: KeyPath<Element, Ref.Column.Value>,
 //        _ ref: () -> Ref,
 //        userInfo: [CodingUserInfoKey: any Sendable] = [:],
-//        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Parent>,
+//        @PropertyBuilder buildColumns: () -> PropertyBuilder.Result<Ref.Model>,
 //        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
 //    )  async throws -> [Intersection2<Element, Ref.Property>] {
-//        let ref = ref()
+////        let ref = ref()
+////        let ids = self.map { $0[keyPath: idKeyPath] }
+////
+////        let query = sql.select()
+////            .column(Ref.Model, as: "__id")
+////            .columns(buildColumns().columns)
+////            .from(Ref.Column.Schema.self)
+////            .where(ref.column, .in, SQLBind.group(ids))
+////        buildOrderBy(query)
+////        let allChildren = try await query
+////            .all(
+////                decoding: RowWithInternalID<Ref.Column.Value, Ref.Model>.self,
+////                userInfo: userInfo
+////            )
+////
+////        return addParent(
+////            array: self,
+////            elementIDKeyPath: idKeyPath,
+////            allChildren: allChildren,
+////            initProperty: ref.initProperty
+////        )
+//    }
+//
+//    public func eagerLoadParent<
+//        ID: Hashable, Parent, ParentPropertyType
+//    >(
+//        parentKey idKeyPath: KeyPath<Element, ID>,
+//        fetch: ([ID]) async throws -> [Parent],
+//        parentIDKey parentKeyPath: KeyPath<Parent, ID>,
+//        parentPropertyInit: (Parent) -> ParentPropertyType
+//    )  async throws -> [Intersection2<Element, ParentPropertyType>] {
 //        let ids = self.map { $0[keyPath: idKeyPath] }
 //
-//        let query = sql.select()
-//            .column(Ref.Parent, as: "__id")
-//            .columns(buildColumns().columns)
-//            .from(Ref.Column.Schema.self)
-//            .where(ref.column, .in, SQLBind.group(ids))
-//        buildOrderBy(query)
-//        let allChildren = try await query
-//            .all(
-//                decoding: RowWithInternalID<Ref.Column.Value, Ref.Parent>.self,
-//                userInfo: userInfo
-//            )
+//        let allParents = try await fetch(ids)
+//        var parentMap: [ID: Parent] = [:]
+//        parentMap.reserveCapacity(allParents.count)
+//        for parent in allParents {
+//            parentMap[parent[keyPath: parentKeyPath]] = parent
+//        }
 //
-//        return addParent(
-//            array: self,
-//            elementIDKeyPath: idKeyPath,
-//            allChildren: allChildren,
-//            initProperty: ref.initProperty
-//        )
+//        return self.map { row in
+//            let rowID = row[keyPath: idKeyPath]
+//            let parent = parentMap[rowID]
+//            return .init((row, parentPropertyInit(parent)))
+//        }
 //    }
+//
 //}
-//
-//fileprivate func addParent<Element, Parent, Property, ID: Equatable>(
-//    array: [Element],
-//    elementIDKeyPath: KeyPath<Element, ID>,
-//    allChildren: [RowWithInternalID<ID, Parent>],
-//    initProperty: (Parent) -> Property
-//) -> [Intersection2<Element, Property>] {
-//    return array.map { row in
-//        let rowID = row[keyPath: elementIDKeyPath]
-//        let children = allChildren.filter { $0.__id == rowID }.map(\.row)
-//        let childrenProperty = initProperty(children)
-//        return .init((row, childrenProperty))
-//    }
-//}
-//
-//
