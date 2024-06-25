@@ -68,8 +68,9 @@ struct PhotoModel: IDSchemaProtocol, Codable, Sendable {
     var filename: String
 }
 
-struct Ingredients<T: Decodable>: Decodable {
-    var ingredients: [T]
+enum SQL {
+    #SQLColumnPropertyType(name: "photo")
+    #SQLColumnPropertyType(name: "ingredients")
 }
 
 func f(sql: some SQLDatabase) async throws {
@@ -85,7 +86,7 @@ func f(sql: some SQLDatabase) async throws {
                     .all()
             },
             mappingKey: \.recipeID,
-            propertyInit: Ingredients<IngredientModel>.init
+            propertyInit: SQL.ingredients.Property.init
         )
         .eagerLoadMany(sql: sql, for: \.id, reference: RecipeModel.steps()) {
             $0.orderBy(StepModel.order)
@@ -93,13 +94,6 @@ func f(sql: some SQLDatabase) async throws {
 
     _ = tests.first?.ingredients
     _ = tests.first?.steps
-}
-
-struct recipe<T: Decodable>: Decodable {
-    var recipe: T
-}
-struct photo<T: Decodable>: Decodable {
-    var photo: T
 }
 
 func g(sql: some SQLDatabase) async throws {
@@ -116,7 +110,7 @@ func g(sql: some SQLDatabase) async throws {
                     .all()
             },
             mappingKey: \.id,
-            propertyInit: photo<PhotoModel>.init
+            propertyInit: SQL.photo.Property.init
         )
         .eagerLoadOne(sql: sql, mappedBy: \.photoID, reference: StepModel.photo())
 
