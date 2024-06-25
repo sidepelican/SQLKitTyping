@@ -17,5 +17,8 @@ public macro hasMany<Schema: SchemaProtocol, T: Equatable>(
     mappedBy column: KeyPath<Schema, T>
 ) = #externalMacro(module: "SQLKitTypingMacros", type: "hasMany")
 
-//@attached(peer, names: prefixed(__), overloaded)
-//public macro Parent<Schema: SchemaProtocol, T: Equatable>(by column: KeyPath<Schema, T>) = #externalMacro(module: "SQLKitTypingMacros", type: "Parent")
+@freestanding(declaration, names: arbitrary)
+public macro hasOne<Model: Decodable & IDSchemaProtocol>(
+    name: String,
+    type: Model.Type
+) = #externalMacro(module: "SQLKitTypingMacros", type: "hasOne")

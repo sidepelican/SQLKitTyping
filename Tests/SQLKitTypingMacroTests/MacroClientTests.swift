@@ -30,18 +30,10 @@ struct IngredientModel: SchemaProtocol, Codable, Sendable {
 
     var recipeID: RecipeID
 
-//    @Parent(by: \Self.recipeID)
-//    var recipe: RecipeModel
-
-//    public struct __recipe<Child: Decodable>: ParentProperty, Decodable {
-//        public var recipe: Child
-//    }
-//    public static func recipe<Row: Decodable>() -> _ParentReference<some TypedSQLColumn<Self, RecipeModel.ID>, __recipe<Row>> {
-//        return .init(
-//            column: Self.recipeID,
-//            initProperty: __recipe.init
-//        )
-//    }
+    #hasOne(
+        name: "recipe",
+        type: RecipeModel.self
+    )
 
     var order: Int
     var name: String
@@ -55,14 +47,24 @@ struct StepModel: SchemaProtocol, Codable, Sendable {
     var order: Int
     var description: String
     var amount: String
-    var photo: PhotoID?
+    var photoID: PhotoID?
+
+    #hasOne(
+        name: "recipe",
+        type: RecipeModel.self
+    )
+
+    #hasOne(
+        name: "photo",
+        type: PhotoModel.self
+    )
 }
 
 @Schema
-struct PhotoModel: SchemaProtocol, Codable, Sendable {
+struct PhotoModel: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "photos" }
 
-    var photoID: PhotoID
+    var id: PhotoID
     var filename: String
 }
 
@@ -71,11 +73,10 @@ struct Ingredients<T: Decodable>: Decodable {
 }
 
 func f(sql: some SQLDatabase) async throws {
-
     let tests = try await sql.selectWithColumn(RecipeModel.all)
         .from(RecipeModel.tableName)
         .all()
-        .eagerLoad(
+        .eagerLoadMany(
             idKey: \.id,
             fetch: { ids in
                 try await sql.selectWithColumn(IngredientModel.all)
@@ -86,12 +87,41 @@ func f(sql: some SQLDatabase) async throws {
             mappingKey: \.recipeID,
             propertyInit: Ingredients<IngredientModel>.init
         )
-        .eagerLoad(sql: sql, for: \.id, reference: RecipeModel.steps()) {
+        .eagerLoadMany(sql: sql, for: \.id, reference: RecipeModel.steps()) {
             $0.orderBy(StepModel.order)
         }
 
     _ = tests.first?.ingredients
     _ = tests.first?.steps
+}
+
+struct recipe<T: Decodable>: Decodable {
+    var recipe: T
+}
+struct photo<T: Decodable>: Decodable {
+    var photo: T
+}
+
+func g(sql: some SQLDatabase) async throws {
+    let tests = try await sql.selectWithColumn(StepModel.all)
+        .from(StepModel.tableName)
+        .all()
+        .eagerLoadOne(sql: sql, mappedBy: \.recipeID, reference: StepModel.recipe())
+        .eagerLoadOne(
+            idKey: \.photoID,
+            fetch: { ids in
+                try await sql.selectWithColumn(PhotoModel.all)
+                    .from(PhotoModel.self)
+                    .where(PhotoModel.id, .in, SQLBind.group(ids))
+                    .all()
+            },
+            mappingKey: \.id,
+            propertyInit: photo<PhotoModel>.init
+        )
+        .eagerLoadOne(sql: sql, mappedBy: \.photoID, reference: StepModel.photo())
+
+    _ = tests.first?.recipe.title
+    _ = tests.first?.photo?.filename
 }
 
 fileprivate struct S {

@@ -2,63 +2,58 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct hasOne: PeerMacro {
+public struct hasOne: DeclarationMacro {
     private struct Arguments {
-        var column: KeyPathExprSyntax
+        var name: String
+        var type: MemberAccessExprSyntax
     }
 
     private static func extractArguments(from arguments: LabeledExprListSyntax) throws -> Arguments {
-        var column: KeyPathExprSyntax?
+        var name: String?
+        var type: MemberAccessExprSyntax?
         for argument in arguments {
-            if argument.label?.text == "by" {
-                column = argument.expression.as(KeyPathExprSyntax.self)
+            switch argument.label?.text {
+            case "name":
+                let literal = argument.expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
+                guard let literal else {
+                    throw MessageError("StringLiteral expected.")
+                }
+                name = literal
+            case "type":
+                type = argument.expression.as(MemberAccessExprSyntax.self)
+            default:
+                break
             }
         }
-        guard let column else {
+        guard let name, let type else {
             throw MessageError("unexpected.")
         }
-        return .init(column: column)
+        return .init(name: name, type: type)
     }
 
-    // MARK: - Peer
+    // MARK: - Declaration
 
     public static func expansion(
-        of node: AttributeSyntax,
-        providingPeersOf declaration: some DeclSyntaxProtocol,
+        of node: some FreestandingMacroExpansionSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        guard let varDecl = declaration.as(VariableDeclSyntax.self),
-              let binding = varDecl.bindings.first,
-              case .argumentList(let nodeArguments) = node.arguments
-        else {
-            return []
-        }
+        let arguments = try extractArguments(from: node.arguments)
 
-        let arguments = try extractArguments(from: nodeArguments)
-        guard let schemaType = arguments.column.root else {
+        let name = "\(raw: arguments.name)" as TokenSyntax
+        guard let schemaType = arguments.type.base else {
             throw MessageError("Must specify root type.")
         }
-        guard let typeAnnotation = binding.typeAnnotation?.type.trimmed else {
-            throw MessageError("Must specify variable type.")
+
+        return ["""
+        public struct __\(name)Reference: HasOneReference {
+            public struct Property: Decodable {
+                public var \(name): \(schemaType)
+            }
+            public var initProperty: (\(schemaType)) -> Property {
+                return Property.init
+            }
         }
-        let columnRefIdentifier = "\(schemaType)\(arguments.column.components)" as TokenSyntax
-
-        let propertyName = binding.pattern.trimmed
-        let modifiers = varDecl.modifiers.trimmed.with(\.trailingTrivia, .space)
-
-        return [
-            """
-            \(modifiers)struct __\(propertyName)<Parent: Decodable>: ParentProperty, Decodable {
-                \(modifiers)var \(propertyName): Parent
-            }
-            \(modifiers)static func \(propertyName)<Row: Decodable>() -> _ParentReference<some TypedSQLColumn<\(schemaType), \(typeAnnotation).ID>, __\(propertyName)<Row>> {
-                return .init(
-                    column: \(columnRefIdentifier),
-                    initProperty: __\(propertyName).init
-                )
-            }
-            """,
-        ]
+        public static func \(name)() -> __\(name)Reference { .init() }
+        """]
     }
-
 }

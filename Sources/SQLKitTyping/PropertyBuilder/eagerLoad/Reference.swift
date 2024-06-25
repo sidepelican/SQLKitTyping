@@ -6,10 +6,8 @@ public protocol HasManyReference<Column, Property> {
     var initProperty: ([Model]) -> Property { get }
 }
 
-public protocol HasOneReference<Column, Property> {
-    associatedtype Column: TypedSQLColumn where Column.Value: Hashable
+public protocol HasOneReference<Property> {
     associatedtype Property
-    associatedtype Model: Decodable
-    var column: Column { get }
+    associatedtype Model: Decodable & IDSchemaProtocol
     var initProperty: (Model) -> Property { get }
 }
