@@ -1,17 +1,5 @@
 import SQLKit
 
-struct RowWithInternalID<ID: Decodable, Row: Decodable>: Decodable {
-    var __id: ID
-    var row: Row
-    enum CodingKeys: String, CodingKey {
-        case __id
-    }
-    init(from decoder: any Decoder) throws {
-        __id = try decoder.container(keyedBy: CodingKeys.self).decode(ID.self, forKey: .__id)
-        row = try decoder.singleValueContainer().decode(Row.self)
-    }
-}
-
 extension Array {
     public func eagerLoadMany<
         Ref: HasManyReference
@@ -20,28 +8,10 @@ extension Array {
         for idKeyPath: KeyPath<Element, Ref.Column.Value>,
         with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
+        buildOrderBy: @escaping (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
-        return try await eagerLoadMany(
-            idKey: idKeyPath,
-            fetch: { ids in
-                let query = sql.select()
-                    .column(reference.column, as: "__id")
-                    .columns(SQLLiteral.all)
-                    .from(Ref.Column.Schema.self)
-                    .where(reference.column, .in, SQLBind.group(ids))
-                buildOrderBy(query)
-                return try await query
-                    .all(
-                        decoding: RowWithInternalID<Ref.Column.Value, Ref.Model>.self,
-                        userInfo: userInfo
-                    )
-            },
-            mappingKey: \RowWithInternalID<Ref.Column.Value, Ref.Model>.__id,
-            propertyInit: {
-                reference.initProperty($0.map(\.row))
-            }
-        )
+        return try await HasManyEagerLoader(reference: reference, idKeyPath: idKeyPath, buildOrderBy: buildOrderBy)
+            .run(self, sql: sql, userInfo: userInfo)
     }
 
     public func eagerLoadMany<
@@ -73,41 +43,14 @@ extension Optional {
         for idKeyPath: KeyPath<Wrapped, Ref.Column.Value>,
         with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
-        buildOrderBy: (any SQLPartialResultBuilder) -> () = { _ in }
+        buildOrderBy: @escaping (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
-        return try await eagerLoadMany(
-            idKey: idKeyPath,
-            fetch: { id in
-                let query = sql.select()
-                    .columns(SQLLiteral.all)
-                    .from(Ref.Column.Schema.self)
-                    .where(reference.column, .equal, id)
-                buildOrderBy(query)
-                return try await query
-                    .all(
-                        decoding: Ref.Model.self,
-                        userInfo: userInfo
-                    )
-            },
-            propertyInit: {
-                reference.initProperty($0)
-            }
-        )
-    }
-
-    public func eagerLoadMany<
-        ID: Equatable, Many, ManyPropertyType
-    >(
-        idKey: KeyPath<Wrapped, ID>,
-        fetch: (ID) async throws -> [Many],
-        propertyInit: ([Many]) -> ManyPropertyType
-    )  async throws -> Intersection2<Wrapped, ManyPropertyType>? {
         guard let self else {
             return nil
         }
-        let id = self[keyPath: idKey]
-        let children = try await fetch(id)
-        return .init((self, propertyInit(children)))
+        return try await HasManyEagerLoader(reference: reference, idKeyPath: idKeyPath, buildOrderBy: buildOrderBy)
+            .run([self], sql: sql, userInfo: userInfo)
+            .first
     }
 }
 
@@ -120,25 +63,8 @@ extension Array {
         with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, Ref.Property>] {
-        return try await eagerLoadOne(
-            idKey: idKeyPath,
-            fetch: { ids in
-                let query = sql.select()
-                    .column(Ref.Model.id, as: "__id")
-                    .columns(SQLLiteral.all)
-                    .from(Ref.Model.self)
-                    .where(Ref.Model.id, .in, SQLBind.group(ids))
-                return try await query
-                    .all(
-                        decoding: RowWithInternalID<Ref.Model.ID, Ref.Model>.self,
-                        userInfo: userInfo
-                    )
-            },
-            mappingKey: \RowWithInternalID<Ref.Model.ID, Ref.Model>.__id,
-            propertyInit: {
-                reference.initProperty($0.row)
-            }
-        )
+        return try await HasOneEagerLoader(reference: reference, idKeyPath: idKeyPath)
+            .run(self, sql: sql, userInfo: userInfo)
     }
 
     public func eagerLoadOne<
@@ -149,25 +75,8 @@ extension Array {
         with reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, NullableProperty<Ref.Property>>] {
-        return try await eagerLoadOne(
-            idKey: idKeyPath,
-            fetch: { ids in
-                let query = sql.select()
-                    .column(Ref.Model.id, as: "__id")
-                    .columns(SQLLiteral.all)
-                    .from(Ref.Model.self)
-                    .where(Ref.Model.id, .in, SQLBind.group(ids))
-                return try await query
-                    .all(
-                        decoding: RowWithInternalID<Ref.Model.ID, Ref.Model>.self,
-                        userInfo: userInfo
-                    )
-            },
-            mappingKey: \RowWithInternalID<Ref.Model.ID, Ref.Model>.__id,
-            propertyInit: {
-                reference.initProperty($0.row)
-            }
-        )
+        return try await HasOneOptionalEagerLoader(reference: reference, idKeyPath: idKeyPath)
+            .run(self, sql: sql, userInfo: userInfo)
     }
 
     public func eagerLoadOne<

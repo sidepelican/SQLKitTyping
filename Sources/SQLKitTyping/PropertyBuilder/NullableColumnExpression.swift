@@ -23,15 +23,21 @@ extension PropertySQLExpression where Self: TypedSQLColumn {
     }
 }
 
-
 @dynamicMemberLookup
-public struct NullableProperty<Propery: Decodable>: Decodable {
+public struct NullableProperty<Propery> {
     public var wrapped: Propery?
 
     public init(_ wrapped: Propery?) {
         self.wrapped = wrapped
     }
 
+    @inlinable
+    public subscript<T>(dynamicMember keyPath: KeyPath<Propery, T>) -> T? {
+        wrapped?[keyPath: keyPath]
+    }
+}
+
+extension NullableProperty: Decodable where Propery: Decodable {
     public init(from decoder: any Decoder) throws {
         do {
             wrapped = try Propery(from: NullableDecoder(parent: decoder))
@@ -42,11 +48,6 @@ public struct NullableProperty<Propery: Decodable>: Decodable {
                 wrapped = nil
             }
         }
-    }
-
-    @inlinable
-    public subscript<T>(dynamicMember keyPath: KeyPath<Propery, T>) -> T? {
-        wrapped?[keyPath: keyPath]
     }
 
     struct NullableDecoder: Decoder {
