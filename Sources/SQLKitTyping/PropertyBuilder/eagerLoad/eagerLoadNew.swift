@@ -134,6 +134,40 @@ extension Array {
     }
 }
 
+extension Optional {
+    public func eagerLoadOne<
+        Ref: HasOneReference
+    >(
+        sql: any SQLDatabase,
+        mappedBy idKeyPath: KeyPath<Wrapped, Ref.Model.ID>,
+        with reference: Ref.Type,
+        userInfo: [CodingUserInfoKey: any Sendable] = [:]
+    )  async throws -> Intersection2<Wrapped, Ref.Property>? {
+        guard let self else {
+            return nil
+        }
+        return try await HasOneEagerLoader(reference: reference, idKeyPath: idKeyPath)
+            .run([self], sql: sql, userInfo: userInfo)
+            .first
+    }
+
+    public func eagerLoadOne<
+        Ref: HasOneReference
+    >(
+        sql: any SQLDatabase,
+        mappedBy idKeyPath: KeyPath<Wrapped, Ref.Model.ID?>,
+        with reference: Ref.Type,
+        userInfo: [CodingUserInfoKey: any Sendable] = [:]
+    )  async throws -> Intersection2<Wrapped, NullableProperty<Ref.Property>>? {
+        guard let self else {
+            return nil
+        }
+        return try await HasOneOptionalEagerLoader(reference: reference, idKeyPath: idKeyPath)
+            .run([self], sql: sql, userInfo: userInfo)
+            .first
+    }
+}
+
 public enum EagerLoadError: Error {
     case valueNotFound(id: String)
 }

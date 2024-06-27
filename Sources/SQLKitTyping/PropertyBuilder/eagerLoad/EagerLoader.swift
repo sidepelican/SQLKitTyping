@@ -1,15 +1,9 @@
 import SQLKit
 
-protocol EagerLoader {
-    associatedtype Model
-    associatedtype Property
-    func run(_ models: [Model], sql: any SQLDatabase, userInfo: [CodingUserInfoKey: any Sendable]) async throws -> [Intersection2<Model, Property>]
-}
-
 struct HasManyEagerLoader<
     Ref: HasManyReference,
     From
->: EagerLoader {
+> {
     typealias Property = Ref.Property
 
     var reference: Ref.Type
@@ -43,7 +37,7 @@ struct HasManyEagerLoader<
 struct HasOneEagerLoader<
     Ref: HasOneReference,
     From
->: EagerLoader {
+> {
     typealias Property = Ref.Property
 
     var reference: Ref.Type
@@ -75,7 +69,7 @@ struct HasOneEagerLoader<
 struct HasOneOptionalEagerLoader<
     Ref: HasOneReference,
     From
->: EagerLoader {
+> {
     typealias Property = NullableProperty<Ref.Property>
 
     var reference: Ref.Type
