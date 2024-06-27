@@ -103,9 +103,7 @@ final class SchoolTests: XCTestCase {
             .from(School.self)
             .where(School.id, .equal, school1ID)
             .first()
-            .eagerLoad(sql: sql, for: \.id, School.lessons) {
-                Lesson.all
-            }
+            .eagerLoadMany(sql: sql, for: \.id, using: School.lessons.self)
         XCTAssertEqual(row?.lessons.count, 3)
         XCTAssertEqual(row?.lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
 
@@ -113,9 +111,7 @@ final class SchoolTests: XCTestCase {
             .from(School.self)
             .orderBy(School.name)
             .all()
-            .eagerLoad(sql: sql, for: \.id, School.lessons) {
-                Lesson.all
-            }
+            .eagerLoadMany(sql: sql, for: \.id, using: School.lessons.self)
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
         if rows.count == 3 {
             XCTAssertEqual(rows[0].name, "ikebukuro")
