@@ -119,7 +119,7 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
             ColumnDefinition(
                 decl: $0.decl,
                 in: context,
-                emitsDiagnostics: true
+                emitsDiagnostics: false
             )
         }
         let modifiers = declGroup.modifiers.trimmed.with(\.trailingTrivia, .space)

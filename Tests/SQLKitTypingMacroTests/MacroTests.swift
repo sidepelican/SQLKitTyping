@@ -27,18 +27,9 @@ struct Test {
 """,
 expandedSource: #"""
 struct Test {
-    var value: Int {
-        @available(*, unavailable)
-        get {
-            fatalError()
-        }
-    }
+    var value: Int
 
-    struct __allProperty: Codable {
-        var value: Int
-    }
-
-    static let all = AllPropertyExpression<Test, __allProperty>()
+    static let all = AllPropertyExpression<Test, Test>()
 
     struct __value: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
@@ -46,7 +37,7 @@ struct Test {
         var name: String {
             "value"
         }
-        struct Property: Decodable {
+        struct Property: Decodable, Sendable {
             var value: Int
             enum CodingKeys: CodingKey {
                 case value
@@ -62,7 +53,8 @@ struct Test {
 }
 
 enum TestTypes {
-    typealias All = Test.__allProperty
+    /// => Int
+    typealias Value = Test.__value.Value
 }
 """#,
 macros: allMacro
@@ -79,14 +71,9 @@ public struct Test {
 """,
 expandedSource: #"""
 public struct Test {
-    @EraseProperty
     public var fooBar: Int?
 
-    public struct __allProperty: Codable {
-        public var fooBar: Int?
-    }
-
-    public static let all = AllPropertyExpression<Test, __allProperty>()
+    public static let all = AllPropertyExpression<Test, Test>()
 
     public struct __fooBar: TypedSQLColumn, PropertySQLExpression {
         public typealias Schema = Test
@@ -94,7 +81,7 @@ public struct Test {
         public var name: String {
             "fooBar"
         }
-        public struct Property: Decodable {
+        public struct Property: Decodable, Sendable {
             public var fooBar: Int?
             public enum CodingKeys: CodingKey {
                 case fooBar
@@ -110,7 +97,8 @@ public struct Test {
 }
 
 public enum TestTypes {
-    public typealias All = Test.__allProperty
+    /// => Int?
+    public typealias FooBar = Test.__fooBar.Value
 }
 """#,
 macros: [
@@ -133,14 +121,10 @@ struct Test {
     static let tableName: String = "foo"
     var computed: Int { 42 }
 
-    struct __allProperty: Codable {
-    }
-
-    static let all = AllPropertyExpression<Test, __allProperty>()
+    static let all = AllPropertyExpression<Test, Test>()
 }
 
 enum TestTypes {
-    typealias All = Test.__allProperty
 }
 """,
 macros: schemaMacro
@@ -159,14 +143,10 @@ expandedSource: #"""
 struct Test {
     var wrapper = ""
 
-    struct __allProperty: Codable {
-    }
-
-    static let all = AllPropertyExpression<Test, __allProperty>()
+    static let all = AllPropertyExpression<Test, Test>()
 }
 
 enum TestTypes {
-    typealias All = Test.__allProperty
 }
 """#,
 diagnostics: [
@@ -186,27 +166,11 @@ struct Test {
 }
 """,
 expandedSource: #"""
-
 struct Test {
-    var `class`: Class {
-        @available(*, unavailable)
-        get {
-            fatalError()
-        }
-    }
-    var `struct`: Int {
-        @available(*, unavailable)
-        get {
-            fatalError()
-        }
-    }
+    var `class`: Class
+    var `struct`: Int
 
-    struct __allProperty: Codable {
-        var `class`: Class
-        var `struct`: Int
-    }
-
-    static let all = AllPropertyExpression<Test, __allProperty>()
+    static let all = AllPropertyExpression<Test, Test>()
 
     struct __class: TypedSQLColumn, PropertySQLExpression {
         typealias Schema = Test
@@ -214,7 +178,7 @@ struct Test {
         var name: String {
             "class"
         }
-        struct Property: Decodable {
+        struct Property: Decodable, Sendable {
             var `class`: Class
             enum CodingKeys: CodingKey {
                 case `class`
@@ -234,7 +198,7 @@ struct Test {
         var name: String {
             "struct"
         }
-        struct Property: Decodable {
+        struct Property: Decodable, Sendable {
             var `struct`: Int
             enum CodingKeys: CodingKey {
                 case `struct`
@@ -250,58 +214,13 @@ struct Test {
 }
 
 enum TestTypes {
-    typealias All = Test.__allProperty
+    /// => Class
+    typealias Class = Test.__class.Value
+    /// => Int
+    typealias Struct = Test.__struct.Value
 }
 """#,
 macros: allMacro
-        )
-    }
-
-    func testSchemaAddErasePropertyForEnum() throws {
-        assertMacroExpansion(
-"""
-@Schema
-enum Test {
-    var value: Int
-}
-""",
-expandedSource: #"""
-enum Test {
-    @EraseProperty
-    var value: Int
-
-    struct __allProperty: Codable {
-        var value: Int
-    }
-
-    static let all = AllPropertyExpression<Test, __allProperty>()
-
-    struct __value: TypedSQLColumn, PropertySQLExpression {
-        typealias Schema = Test
-        typealias Value = Int
-        var name: String {
-            "value"
-        }
-        struct Property: Decodable {
-            var value: Int
-            enum CodingKeys: CodingKey {
-                case value
-                var stringValue: String {
-                    "\(Schema.tableName)_value"
-                }
-            }
-        }
-    }
-
-    /// => value: Int
-    static let value = __value()
-}
-
-enum TestTypes {
-    typealias All = Test.__allProperty
-}
-"""#,
-macros: schemaMacro
         )
     }
 }
