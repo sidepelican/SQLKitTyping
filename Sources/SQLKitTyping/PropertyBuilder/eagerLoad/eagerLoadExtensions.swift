@@ -6,7 +6,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Element, Ref.Column.Value>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: @escaping (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> [Intersection2<Element, Ref.Property>] {
@@ -41,7 +41,7 @@ extension Optional {
     >(
         sql: any SQLDatabase,
         for idKeyPath: KeyPath<Wrapped, Ref.Column.Value>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:],
         buildOrderBy: @escaping (any SQLPartialResultBuilder) -> () = { _ in }
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
@@ -60,7 +60,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, Ref.Property>] {
         return try await HasOneEagerLoader(reference: reference, idKeyPath: idKeyPath)
@@ -72,7 +72,7 @@ extension Array {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Element, Ref.Model.ID?>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> [Intersection2<Element, NullableProperty<Ref.Property>>] {
         return try await HasOneOptionalEagerLoader(reference: reference, idKeyPath: idKeyPath)
@@ -140,7 +140,7 @@ extension Optional {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Wrapped, Ref.Model.ID>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> Intersection2<Wrapped, Ref.Property>? {
         guard let self else {
@@ -156,7 +156,7 @@ extension Optional {
     >(
         sql: any SQLDatabase,
         mappedBy idKeyPath: KeyPath<Wrapped, Ref.Model.ID?>,
-        with reference: Ref.Type,
+        using reference: Ref.Type,
         userInfo: [CodingUserInfoKey: any Sendable] = [:]
     )  async throws -> Intersection2<Wrapped, NullableProperty<Ref.Property>>? {
         guard let self else {
