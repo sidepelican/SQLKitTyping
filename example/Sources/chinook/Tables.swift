@@ -2,7 +2,7 @@ import SQLKitTyping
 import Foundation
 
 @Schema
-struct TrackTable: SchemaProtocol {
+struct TrackTable: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "tracks" }
 
     var TrackId: Int
@@ -17,7 +17,7 @@ struct TrackTable: SchemaProtocol {
 }
 
 @Schema
-struct AlbumTable: SchemaProtocol {
+struct AlbumTable: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "albums" }
 
     var AlbumId: Int
@@ -26,7 +26,7 @@ struct AlbumTable: SchemaProtocol {
 }
 
 @Schema
-struct ArtistTable: SchemaProtocol {
+struct ArtistTable: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "artists" }
 
     var ArtistId: Int
@@ -34,7 +34,7 @@ struct ArtistTable: SchemaProtocol {
 }
 
 @Schema
-struct EmployeeTable: SchemaProtocol {
+struct EmployeeTable: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "employees" }
 
     var EmployeeId: Int

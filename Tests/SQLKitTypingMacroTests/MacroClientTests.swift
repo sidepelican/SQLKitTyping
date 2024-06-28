@@ -2,10 +2,10 @@ import XCTest
 import SQLKitTyping
 
 struct RecipeID: Hashable, Codable, Sendable {}
-struct IngredientID: Hashable, Codable, Sendable {}
+struct PhotoID: Hashable, Codable, Sendable {}
 
 @Schema
-fileprivate enum RecipeTable: IDSchemaProtocol {
+struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     public static var tableName: String { "recipes" }
 
     var id: RecipeID
@@ -13,34 +13,114 @@ fileprivate enum RecipeTable: IDSchemaProtocol {
     var title: String
     fileprivate var kcal: Int
 
-    @Children(for: \IngredientTable.recipeID)
-    public var ingredients: Any
+    #hasMany(
+        name: "ingredients",
+        mappedBy: \IngredientModel.recipeID
+    )
 
+    #hasMany(
+        name: "steps",
+        mappedBy: \StepModel.recipeID
+    )
 }
 
 @Schema
-enum IngredientTable: SchemaProtocol {
+struct IngredientModel: SchemaProtocol, Codable, Sendable {
     static var tableName: String { "ingredients" }
 
     var recipeID: RecipeID
+
+    #hasOne(
+        name: "recipe",
+        type: RecipeModel.self
+    )
+
     var order: Int
     var name: String
 }
 
+@Schema
+struct StepModel: SchemaProtocol, Codable, Sendable {
+    static var tableName: String { "steps" }
+
+    var recipeID: RecipeID
+    var order: Int
+    var description: String
+    var amount: String
+    var photoID: PhotoID?
+
+    #hasOne(
+        name: "recipe",
+        type: RecipeModel.self
+    )
+
+    #hasOne(
+        name: "photo",
+        type: PhotoModel.self
+    )
+}
+
+@Schema
+struct PhotoModel: IDSchemaProtocol, Codable, Sendable {
+    static var tableName: String { "photos" }
+
+    var id: PhotoID
+    var filename: String
+}
+
+enum SQL {
+    #SQLColumnPropertyType(name: "photo")
+    #SQLColumnPropertyType(name: "ingredients")
+}
+
 func f(sql: some SQLDatabase) async throws {
-    let tests = try await sql.selectWithColumn(RecipeTable.all)
-        .from(RecipeTable.tableName)
+    let tests = try await sql.selectWithColumn(RecipeModel.all)
+        .from(RecipeModel.tableName)
         .all()
-        .eagerLoad(sql: sql, for: \.id, RecipeTable.ingredients) {
-            IngredientTable.all
+        .eagerLoadMany(
+            idKey: \.id,
+            fetch: { ids in
+                try await sql.selectWithColumn(IngredientModel.all)
+                    .from(IngredientModel.self)
+                    .where(IngredientModel.recipeID, .in, SQLBind.group(ids))
+                    .all()
+            },
+            mappingKey: \.recipeID,
+            propertyInit: RecipeModel.ingredients.init
+        )
+        .eagerLoadMany(sql: sql, for: \.id, using: RecipeModel.steps.self) {
+            $0.orderBy(StepModel.order)
         }
 
     _ = tests.first?.ingredients
+    _ = tests.first?.steps
+}
+
+func g(sql: some SQLDatabase) async throws {
+    let tests = try await sql.selectWithColumn(StepModel.all)
+        .from(StepModel.tableName)
+        .all()
+        .eagerLoadOne(sql: sql, mappedBy: \.recipeID, using: StepModel.recipe.self)
+        .eagerLoadOne(
+            idKey: \.photoID,
+            fetch: { ids in
+                try await sql.selectWithColumn(PhotoModel.all)
+                    .from(PhotoModel.self)
+                    .where(PhotoModel.id, .in, SQLBind.group(ids))
+                    .all()
+            },
+            mappingKey: \.id,
+            propertyInit: StepModel.photo.init
+        )
+        .eagerLoadOne(sql: sql, mappedBy: \.photoID, using: StepModel.photo.self)
+
+    _ = tests.first?.recipe.title
+    _ = tests.first?.photo?.filename
 }
 
 fileprivate struct S {
-    @TypeOf(RecipeTable.title) var foo
-    @TypeOf(IngredientTable.name) var bar
+    var foo: RecipeModelTypes.Title
+    var bar: RecipeModelTypes.Kcal
 }
 
 enum Foo {

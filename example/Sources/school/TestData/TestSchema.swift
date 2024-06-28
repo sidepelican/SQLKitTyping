@@ -1,48 +1,50 @@
 import Foundation
 import SQLKitTyping
 
+typealias StudentID = GenericID<Student, UUID>
+
 @Schema
-enum Student: IDSchemaProtocol {
+struct Student: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "students" }
-    typealias ID = GenericID<Self, UUID>
 
-    let id: ID
-    let name: String
-    let age: Int?
+    var id: StudentID
+    var name: String
+    var age: Int?
 }
 
+typealias SchoolID = GenericID<School, UUID>
+
 @Schema
-enum School: IDSchemaProtocol {
+struct School: IDSchemaProtocol, Codable, Sendable {
     static var tableName: String { "schools" }
-    typealias ID = GenericID<Self, UUID>
 
-    let id: ID
-    let name: String
+    var id: SchoolID
+    var name: String
 
-    @Children(for: \Lesson.schoolID)
-    let lessons: Any
+    #hasMany(name: "lessons", mappedBy: \Lesson.schoolID)
 }
 
 @Schema
-enum SchoolStudentRelation: RelationSchemaProtocol {
+struct SchoolStudentRelation: RelationSchemaProtocol, Codable, Sendable {
     static var tableName: String { "schools_students" }
 
-    let schoolID: School.ID
-    let studentID: Student.ID
+    var schoolID: SchoolID
+    var studentID: StudentID
 
     static var relation: PivotJoinRelation<Self, School.ID, Student.ID> {
         .init(from: schoolID, to: studentID)
     }
 }
 
-@Schema
-enum Lesson: IDSchemaProtocol {
-    static var tableName: String { "lessons" }
-    typealias ID = GenericID<Self, UUID>
+typealias LessonID = GenericID<Lesson, UUID>
 
-    let id: ID
-    let subject: String
-    let schoolID: School.ID
-    let date: Date?
-    let createdAt: Date
+@Schema
+struct Lesson: IDSchemaProtocol, Codable, Sendable {
+    static var tableName: String { "lessons" }
+
+    var id: LessonID
+    var subject: String
+    var schoolID: SchoolID
+    var date: Date?
+    var createdAt: Date
 }

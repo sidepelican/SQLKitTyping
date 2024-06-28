@@ -6,6 +6,50 @@ public struct NullableColumnExpression<Base: PropertySQLExpression>: PropertySQL
         self.base = base
     }
 
+    public typealias Property = NullableProperty<Base.Property>
+
+    @usableFromInline
+    var base: Base
+
+    public func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)  {
+        base.serializeAsPropertySQLExpression(to: &serializer)
+    }
+}
+
+extension PropertySQLExpression where Self: TypedSQLColumn {
+    @inlinable
+    public var nullable: NullableColumnExpression<Self> {
+        NullableColumnExpression(base: self)
+    }
+}
+
+@dynamicMemberLookup
+public struct NullableProperty<Propery> {
+    public var wrapped: Propery?
+
+    public init(_ wrapped: Propery?) {
+        self.wrapped = wrapped
+    }
+
+    @inlinable
+    public subscript<T>(dynamicMember keyPath: KeyPath<Propery, T>) -> T? {
+        wrapped?[keyPath: keyPath]
+    }
+}
+
+extension NullableProperty: Decodable where Propery: Decodable {
+    public init(from decoder: any Decoder) throws {
+        do {
+            wrapped = try Propery(from: NullableDecoder(parent: decoder))
+        } catch is NullableDecoder.ValueNotFound {
+            wrapped = nil
+        } catch let error as DecodingError {
+            if case .valueNotFound = error {
+                wrapped = nil
+            }
+        }
+    }
+
     struct NullableDecoder: Decoder {
         var parent: any Decoder
 
@@ -66,41 +110,5 @@ public struct NullableColumnExpression<Base: PropertySQLExpression>: PropertySQL
         func singleValueContainer() throws -> any SingleValueDecodingContainer {
             return try parent.singleValueContainer()
         }
-    }
-
-    @dynamicMemberLookup
-    public struct Property: Decodable {
-        public var wrapped: Base.Property?
-
-        public init(from decoder: any Decoder) throws {
-            do {
-                wrapped = try Base.Property(from: NullableDecoder(parent: decoder))
-            } catch is NullableDecoder.ValueNotFound {
-                wrapped = nil
-            } catch let error as DecodingError {
-                if case .valueNotFound = error {
-                    wrapped = nil
-                }
-            }
-        }
-
-        @inlinable
-        public subscript<T>(dynamicMember keyPath: KeyPath<Base.Property, T>) -> T? {
-            wrapped?[keyPath: keyPath]
-        }
-    }
-
-    @usableFromInline
-    var base: Base
-
-    public func serializeAsPropertySQLExpression(to serializer: inout SQLSerializer)  {
-        base.serializeAsPropertySQLExpression(to: &serializer)
-    }
-}
-
-extension PropertySQLExpression where Self: TypedSQLColumn {
-    @inlinable
-    public var nullable: NullableColumnExpression<Self> {
-        NullableColumnExpression(base: self)
     }
 }

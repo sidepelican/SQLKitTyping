@@ -57,11 +57,12 @@ final class SchoolTests: XCTestCase {
 
         XCTAssertEqual(rows.count, 1)
 
+        // Schema type can use on basic sqlkit way.
         rows = try await sql.select()
             .column(Student.all)
             .from(Student.self)
             .where(Student.age, .is, SQLLiteral.null)
-            .all(decoding: StudentTypes.All.self)
+            .all(decoding: Student.self)
 
         XCTAssertEqual(rows.count, 2)
     }
@@ -102,9 +103,7 @@ final class SchoolTests: XCTestCase {
             .from(School.self)
             .where(School.id, .equal, school1ID)
             .first()
-            .eagerLoad(sql: sql, for: \.id, School.lessons) {
-                Lesson.all
-            }
+            .eagerLoadMany(sql: sql, for: \.id, using: School.lessons.self)
         XCTAssertEqual(row?.lessons.count, 3)
         XCTAssertEqual(row?.lessons.map { $0.subject }.sorted(), ["bar1", "baz1", "foo1"])
 
@@ -112,9 +111,7 @@ final class SchoolTests: XCTestCase {
             .from(School.self)
             .orderBy(School.name)
             .all()
-            .eagerLoad(sql: sql, for: \.id, School.lessons) {
-                Lesson.all
-            }
+            .eagerLoadMany(sql: sql, for: \.id, using: School.lessons.self)
         XCTAssertEqual(rows.map(\.lessons.count), [3, 3, 3])
         if rows.count == 3 {
             XCTAssertEqual(rows[0].name, "ikebukuro")
@@ -128,9 +125,9 @@ final class SchoolTests: XCTestCase {
 
     func testPivotEagerLoad() async throws {
         struct SchoolWithStudents: Decodable, Identifiable {
-            @TypeOf(School.id) var id
-            @TypeOf(School.name) var name
-            var students: [StudentTypes.All] = []
+            var id: SchoolTypes.Id
+            var name: SchoolTypes.Name
+            var students: [Student] = []
 
             enum CodingKeys: String, CodingKey {
                 case id
