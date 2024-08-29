@@ -5,7 +5,7 @@ struct RecipeID: Hashable, Codable, Sendable {}
 struct PhotoID: Hashable, Codable, Sendable {}
 
 @Schema
-struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
+struct RecipeModel: Sendable {
     public static var tableName: String { "recipes" }
 
     var id: RecipeID
@@ -25,7 +25,7 @@ struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
 }
 
 @Schema
-struct IngredientModel: SchemaProtocol, Codable, Sendable {
+struct IngredientModel: Sendable {
     static var tableName: String { "ingredients" }
 
     var recipeID: RecipeID
@@ -40,7 +40,7 @@ struct IngredientModel: SchemaProtocol, Codable, Sendable {
 }
 
 @Schema
-struct StepModel: SchemaProtocol, Codable, Sendable {
+struct StepModel: Sendable {
     static var tableName: String { "steps" }
 
     var recipeID: RecipeID
@@ -61,7 +61,7 @@ struct StepModel: SchemaProtocol, Codable, Sendable {
 }
 
 @Schema
-struct PhotoModel: IDSchemaProtocol, Codable, Sendable {
+struct PhotoModel: Sendable {
     static var tableName: String { "photos" }
 
     var id: PhotoID

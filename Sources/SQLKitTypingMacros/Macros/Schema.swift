@@ -2,7 +2,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
+public struct Schema: MemberMacro, PeerMacro, ExtensionMacro {
 
     // MARK: - MemberMacro
 
@@ -98,6 +98,40 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                     )
                 }
             })
+        ]
+    }
+
+    // MARK: - ExtensionMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtensionsOf type: some TypeSyntaxProtocol,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [ExtensionDeclSyntax] {
+        let hasIDProperty = declaration.memberBlock.members.contains { memberBlockItem in
+            let def = ColumnDefinition(
+                decl: memberBlockItem.decl,
+                in: context,
+                emitsDiagnostics: false
+            )
+            return def?.columnName == "id"
+        }
+        if hasIDProperty {
+            return [
+                DeclSyntax("""
+                extension \(type.trimmed): SchemaProtocol, IDSchemaProtocol {
+                }
+                """).cast(ExtensionDeclSyntax.self)
+            ]
+        }
+
+        return [
+            DeclSyntax("""
+            extension \(type.trimmed): SchemaProtocol {
+            }
+            """).cast(ExtensionDeclSyntax.self)
         ]
     }
 }

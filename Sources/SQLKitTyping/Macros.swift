@@ -2,6 +2,7 @@
 
 @attached(member, names: arbitrary, named(all), named(__allProperty))
 @attached(peer, names: suffixed(Types))
+@attached(extension, conformances: SchemaProtocol, IDSchemaProtocol)
 public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
 
 @attached(accessor)
