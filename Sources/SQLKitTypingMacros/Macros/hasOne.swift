@@ -4,31 +4,31 @@ import SwiftSyntaxMacros
 
 public struct hasOne: DeclarationMacro {
     private struct Arguments {
-        var name: String
+        var propertyName: String
         var type: MemberAccessExprSyntax
     }
 
     private static func extractArguments(from arguments: LabeledExprListSyntax) throws -> Arguments {
-        var name: String?
+        var propertyName: String?
         var type: MemberAccessExprSyntax?
         for argument in arguments {
             switch argument.label?.text {
-            case "name":
+            case "propertyName":
                 let literal = argument.expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
                 guard let literal else {
                     throw MessageError("StringLiteral expected.")
                 }
-                name = literal
+                propertyName = literal
             case "type":
                 type = argument.expression.as(MemberAccessExprSyntax.self)
             default:
                 break
             }
         }
-        guard let name, let type else {
+        guard let propertyName, let type else {
             throw MessageError("unexpected.")
         }
-        return .init(name: name, type: type)
+        return .init(propertyName: propertyName, type: type)
     }
 
     // MARK: - Declaration
@@ -39,7 +39,7 @@ public struct hasOne: DeclarationMacro {
     ) throws -> [DeclSyntax] {
         let arguments = try extractArguments(from: node.arguments)
 
-        let name = "\(raw: arguments.name)" as TokenSyntax
+        let name = "\(raw: arguments.propertyName)" as TokenSyntax
         guard let schemaType = arguments.type.base else {
             throw MessageError("Must specify root type.")
         }

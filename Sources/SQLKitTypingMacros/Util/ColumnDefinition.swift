@@ -26,14 +26,6 @@ struct ColumnDefinition {
         else {
             return nil
         }
-        if varDecl.attributes.contains(where: {
-            if case .attribute(let attribute) = $0 {
-                return ["Children", "Parent"].contains(attribute.attributeName.description)
-            }
-            return false
-        }) {
-            return nil
-        }
 
         guard let binding = varDecl.bindings.first,
               let identifier = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier

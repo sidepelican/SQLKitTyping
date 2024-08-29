@@ -4,7 +4,7 @@ import SQLKitTyping
 typealias StudentID = GenericID<Student, UUID>
 
 @Schema
-struct Student: IDSchemaProtocol, Codable, Sendable {
+struct Student: Sendable {
     static var tableName: String { "students" }
 
     var id: StudentID
@@ -15,13 +15,13 @@ struct Student: IDSchemaProtocol, Codable, Sendable {
 typealias SchoolID = GenericID<School, UUID>
 
 @Schema
-struct School: IDSchemaProtocol, Codable, Sendable {
+struct School: Sendable {
     static var tableName: String { "schools" }
 
     var id: SchoolID
     var name: String
 
-    #hasMany(name: "lessons", mappedBy: \Lesson.schoolID)
+    #hasMany(propertyName: "lessons", mappedBy: \Lesson.schoolID)
 }
 
 @Schema
@@ -39,7 +39,7 @@ struct SchoolStudentRelation: RelationSchemaProtocol, Codable, Sendable {
 typealias LessonID = GenericID<Lesson, UUID>
 
 @Schema
-struct Lesson: IDSchemaProtocol, Codable, Sendable {
+struct Lesson: Sendable {
     static var tableName: String { "lessons" }
 
     var id: LessonID

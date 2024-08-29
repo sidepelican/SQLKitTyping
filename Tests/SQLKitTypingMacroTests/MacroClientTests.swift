@@ -5,7 +5,7 @@ struct RecipeID: Hashable, Codable, Sendable {}
 struct PhotoID: Hashable, Codable, Sendable {}
 
 @Schema
-struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
+struct RecipeModel: Sendable {
     public static var tableName: String { "recipes" }
 
     var id: RecipeID
@@ -14,24 +14,24 @@ struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     fileprivate var kcal: Int
 
     #hasMany(
-        name: "ingredients",
+        propertyName: "ingredients",
         mappedBy: \IngredientModel.recipeID
     )
 
     #hasMany(
-        name: "steps",
+        propertyName: "steps",
         mappedBy: \StepModel.recipeID
     )
 }
 
 @Schema
-struct IngredientModel: SchemaProtocol, Codable, Sendable {
+struct IngredientModel: SchemaProtocol, Sendable {
     static var tableName: String { "ingredients" }
 
     var recipeID: RecipeID
 
     #hasOne(
-        name: "recipe",
+        propertyName: "recipe",
         type: RecipeModel.self
     )
 
@@ -40,7 +40,7 @@ struct IngredientModel: SchemaProtocol, Codable, Sendable {
 }
 
 @Schema
-struct StepModel: SchemaProtocol, Codable, Sendable {
+struct StepModel: Sendable {
     static var tableName: String { "steps" }
 
     var recipeID: RecipeID
@@ -50,18 +50,18 @@ struct StepModel: SchemaProtocol, Codable, Sendable {
     var photoID: PhotoID?
 
     #hasOne(
-        name: "recipe",
+        propertyName: "recipe",
         type: RecipeModel.self
     )
 
     #hasOne(
-        name: "photo",
+        propertyName: "photo",
         type: PhotoModel.self
     )
 }
 
 @Schema
-struct PhotoModel: IDSchemaProtocol, Codable, Sendable {
+struct PhotoModel: Sendable {
     static var tableName: String { "photos" }
 
     var id: PhotoID

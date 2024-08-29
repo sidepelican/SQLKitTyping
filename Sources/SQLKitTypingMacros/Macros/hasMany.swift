@@ -4,31 +4,31 @@ import SwiftSyntaxMacros
 
 public struct hasMany: DeclarationMacro {
     private struct Arguments {
-        var name: String
+        var propertyName: String
         var column: KeyPathExprSyntax
     }
 
     private static func extractArguments(from arguments: LabeledExprListSyntax) throws -> Arguments {
-        var name: String?
+        var propertyName: String?
         var column: KeyPathExprSyntax?
         for argument in arguments {
             switch argument.label?.text {
-            case "name":
+            case "propertyName":
                 let literal = argument.expression.as(StringLiteralExprSyntax.self)?.representedLiteralValue
                 guard let literal else {
                     throw MessageError("StringLiteral expected.")
                 }
-                name = literal
+                propertyName = literal
             case "mappedBy":
                 column = argument.expression.as(KeyPathExprSyntax.self)
             default:
                 break
             }
         }
-        guard let name, let column else {
+        guard let propertyName, let column else {
             throw MessageError("unexpected.")
         }
-        return .init(name: name, column: column)
+        return .init(propertyName: propertyName, column: column)
     }
 
     // MARK: - Declaration
@@ -39,7 +39,7 @@ public struct hasMany: DeclarationMacro {
     ) throws -> [DeclSyntax] {
         let arguments = try extractArguments(from: node.arguments)
 
-        let name = "\(raw: arguments.name)" as TokenSyntax
+        let name = "\(raw: arguments.propertyName)" as TokenSyntax
         guard let schemaType = arguments.column.root else {
             throw MessageError("Must specify root type.")
         }

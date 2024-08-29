@@ -1,6 +1,6 @@
 import SQLKit
 
-public protocol SchemaProtocol {
+public protocol SchemaProtocol: Codable {
     static var tableName: String { get }
 }
 

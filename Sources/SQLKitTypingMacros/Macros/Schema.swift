@@ -2,7 +2,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
+public struct Schema: MemberMacro, PeerMacro, ExtensionMacro {
 
     // MARK: - MemberMacro
 
@@ -64,45 +64,6 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         return result
     }
 
-    // MARK: - MemberAttributeMacro
-
-    public static func expansion(
-        of node: AttributeSyntax,
-        attachedTo declaration: some DeclGroupSyntax,
-        providingAttributesFor member: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [AttributeSyntax] {
-        if member.as(VariableDeclSyntax.self)?.attributes.contains(where: {
-            if case .attribute(let attribute) = $0 {
-                return attribute.attributeName.trimmed.description == "Children"
-            }
-            return false
-        }) == true {
-            guard declaration.inheritanceClause?.inheritedTypes.contains(where: {
-                $0.type.trimmed.description == "IDSchemaProtocol"
-            }) == true else {
-                let typeName = declaration.asProtocol((any NamedDeclSyntax).self)?.name.description ?? "this type"
-                throw MessageError("@Children requires \(typeName) to conform to 'IDSchemaProtocol'")
-            }
-            return [
-                AttributeSyntax(TypeSyntax("EraseProperty")),
-            ]
-        }
-
-        if member.as(VariableDeclSyntax.self)?.attributes.contains(where: {
-            if case .attribute(let attribute) = $0 {
-                return attribute.attributeName.trimmed.description == "Parent"
-            }
-            return false
-        }) == true {
-            return [
-                AttributeSyntax(TypeSyntax("EraseProperty")),
-            ]
-        }
-
-        return []
-    }
-
     // MARK: - Peer
 
     public static func expansion(
@@ -138,6 +99,48 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
                 }
             })
         ]
+    }
+
+    // MARK: - ExtensionMacro
+
+    public static func expansion(
+        of node: AttributeSyntax,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtensionsOf type: some TypeSyntaxProtocol,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [ExtensionDeclSyntax] {
+        var conformingTypes: Set<String> = [
+            "SchemaProtocol",
+        ]
+        
+        let hasIDProperty = declaration.memberBlock.members.contains { memberBlockItem in
+            let def = ColumnDefinition(
+                decl: memberBlockItem.decl,
+                in: context,
+                emitsDiagnostics: false
+            )
+            return def?.columnName == "id"
+        }
+        if hasIDProperty {
+            conformingTypes.insert("IDSchemaProtocol")
+        }
+
+        conformingTypes.subtract(declaration.inheritanceClause?.inheritedTypes.map(\.type.trimmedDescription) ?? [])
+
+        if conformingTypes.isEmpty {
+            return []
+        }
+
+        return [ExtensionDeclSyntax(
+            extendedType: type,
+            inheritanceClause: InheritanceClauseSyntax {
+                for type in conformingTypes.sorted() {
+                    InheritedTypeSyntax(type: TypeSyntax(stringLiteral: type))
+                }
+            },
+            memberBlock: "{}"
+        )]
     }
 }
 

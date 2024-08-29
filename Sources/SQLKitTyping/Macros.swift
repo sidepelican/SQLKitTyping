@@ -1,8 +1,8 @@
 @_exported import SQLKit
 
 @attached(member, names: arbitrary, named(all), named(__allProperty))
-@attached(memberAttribute)
 @attached(peer, names: suffixed(Types))
+@attached(extension, conformances: SchemaProtocol, IDSchemaProtocol)
 public macro Schema() = #externalMacro(module: "SQLKitTypingMacros", type: "Schema")
 
 @attached(accessor)
@@ -13,12 +13,12 @@ public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKi
 
 @freestanding(declaration, names: arbitrary)
 public macro hasMany<Schema: SchemaProtocol, T: Equatable>(
-    name: String,
+    propertyName: String,
     mappedBy column: KeyPath<Schema, T>
 ) = #externalMacro(module: "SQLKitTypingMacros", type: "hasMany")
 
 @freestanding(declaration, names: arbitrary)
 public macro hasOne<Model: Decodable & IDSchemaProtocol>(
-    name: String,
+    propertyName: String,
     type: Model.Type
 ) = #externalMacro(module: "SQLKitTypingMacros", type: "hasOne")
