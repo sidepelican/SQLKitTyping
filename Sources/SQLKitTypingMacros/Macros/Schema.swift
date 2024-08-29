@@ -64,45 +64,6 @@ public struct Schema: MemberMacro, MemberAttributeMacro, PeerMacro {
         return result
     }
 
-    // MARK: - MemberAttributeMacro
-
-    public static func expansion(
-        of node: AttributeSyntax,
-        attachedTo declaration: some DeclGroupSyntax,
-        providingAttributesFor member: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [AttributeSyntax] {
-        if member.as(VariableDeclSyntax.self)?.attributes.contains(where: {
-            if case .attribute(let attribute) = $0 {
-                return attribute.attributeName.trimmed.description == "Children"
-            }
-            return false
-        }) == true {
-            guard declaration.inheritanceClause?.inheritedTypes.contains(where: {
-                $0.type.trimmed.description == "IDSchemaProtocol"
-            }) == true else {
-                let typeName = declaration.asProtocol((any NamedDeclSyntax).self)?.name.description ?? "this type"
-                throw MessageError("@Children requires \(typeName) to conform to 'IDSchemaProtocol'")
-            }
-            return [
-                AttributeSyntax(TypeSyntax("EraseProperty")),
-            ]
-        }
-
-        if member.as(VariableDeclSyntax.self)?.attributes.contains(where: {
-            if case .attribute(let attribute) = $0 {
-                return attribute.attributeName.trimmed.description == "Parent"
-            }
-            return false
-        }) == true {
-            return [
-                AttributeSyntax(TypeSyntax("EraseProperty")),
-            ]
-        }
-
-        return []
-    }
-
     // MARK: - Peer
 
     public static func expansion(

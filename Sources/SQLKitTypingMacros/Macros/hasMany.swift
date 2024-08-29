@@ -18,7 +18,7 @@ public struct hasMany: DeclarationMacro {
                 guard let literal else {
                     throw MessageError("StringLiteral expected.")
                 }
-                name = literal
+                propertyName = literal
             case "mappedBy":
                 column = argument.expression.as(KeyPathExprSyntax.self)
             default:

@@ -18,7 +18,7 @@ public struct hasOne: DeclarationMacro {
                 guard let literal else {
                     throw MessageError("StringLiteral expected.")
                 }
-                name = literal
+                propertyName = literal
             case "type":
                 type = argument.expression.as(MemberAccessExprSyntax.self)
             default:
