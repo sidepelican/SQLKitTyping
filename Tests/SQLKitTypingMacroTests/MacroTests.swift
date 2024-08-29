@@ -279,7 +279,7 @@ enum TestTypes {
     typealias Id = Test.__id.Value
 }
 
-extension Test: SchemaProtocol, IDSchemaProtocol {
+extension Test: IDSchemaProtocol, SchemaProtocol {
 }
 """#,
 macros: schemaMacro

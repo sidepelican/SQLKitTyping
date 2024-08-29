@@ -110,12 +110,10 @@ public struct Schema: MemberMacro, PeerMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        if declaration.inheritanceClause?.inheritedTypes.contains(where: {
-            $0.type.trimmedDescription.hasSuffix("SchemaProtocol")
-        }) == true {
-            return []
-        }
-
+        var conformingTypes: Set<String> = [
+            "SchemaProtocol",
+        ]
+        
         let hasIDProperty = declaration.memberBlock.members.contains { memberBlockItem in
             let def = ColumnDefinition(
                 decl: memberBlockItem.decl,
@@ -125,20 +123,24 @@ public struct Schema: MemberMacro, PeerMacro, ExtensionMacro {
             return def?.columnName == "id"
         }
         if hasIDProperty {
-            return [
-                DeclSyntax("""
-                extension \(type.trimmed): SchemaProtocol, IDSchemaProtocol {
-                }
-                """).cast(ExtensionDeclSyntax.self)
-            ]
+            conformingTypes.insert("IDSchemaProtocol")
         }
 
-        return [
-            DeclSyntax("""
-            extension \(type.trimmed): SchemaProtocol {
-            }
-            """).cast(ExtensionDeclSyntax.self)
-        ]
+        conformingTypes.subtract(declaration.inheritanceClause?.inheritedTypes.map(\.type.trimmedDescription) ?? [])
+
+        if conformingTypes.isEmpty {
+            return []
+        }
+
+        return [ExtensionDeclSyntax(
+            extendedType: type,
+            inheritanceClause: InheritanceClauseSyntax {
+                for type in conformingTypes.sorted() {
+                    InheritedTypeSyntax(type: TypeSyntax(stringLiteral: type))
+                }
+            },
+            memberBlock: "{}"
+        )]
     }
 }
 
