@@ -110,6 +110,12 @@ public struct Schema: MemberMacro, PeerMacro, ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
+        if declaration.inheritanceClause?.inheritedTypes.contains(where: {
+            $0.type.trimmedDescription.hasSuffix("SchemaProtocol")
+        }) == true {
+            return []
+        }
+
         let hasIDProperty = declaration.memberBlock.members.contains { memberBlockItem in
             let def = ColumnDefinition(
                 decl: memberBlockItem.decl,

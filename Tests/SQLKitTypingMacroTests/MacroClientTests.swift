@@ -25,7 +25,7 @@ struct RecipeModel: Sendable {
 }
 
 @Schema
-struct IngredientModel: Sendable {
+struct IngredientModel: SchemaProtocol, Sendable {
     static var tableName: String { "ingredients" }
 
     var recipeID: RecipeID

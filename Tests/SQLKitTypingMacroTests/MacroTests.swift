@@ -286,5 +286,48 @@ macros: schemaMacro
         )
     }
 
+    func testSchemaMacroManualConformance() throws {
+        assertMacroExpansion(
+"""
+@Schema
+struct Test: SchemaProtocol {
+    var value: Int
+}
+""",
+expandedSource: #"""
+struct Test: SchemaProtocol {
+    var value: Int
+
+    static let all = AllPropertyExpression<Test, Test>()
+
+    struct __value: TypedSQLColumn, PropertySQLExpression {
+        typealias Schema = Test
+        typealias Value = Int
+        var name: String {
+            "value"
+        }
+        struct Property: Decodable, Sendable {
+            var value: Int
+            enum CodingKeys: CodingKey {
+                case value
+                var stringValue: String {
+                    "\(Schema.tableName)_value"
+                }
+            }
+        }
+    }
+
+    /// => value: Int
+    static let value = __value()
+}
+
+enum TestTypes {
+    /// => Int
+    typealias Value = Test.__value.Value
+}
+"""#,
+macros: allMacro
+        )
+    }
 }
 #endif
