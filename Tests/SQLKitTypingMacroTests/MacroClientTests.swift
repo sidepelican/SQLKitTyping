@@ -14,12 +14,12 @@ struct RecipeModel: IDSchemaProtocol, Codable, Sendable {
     fileprivate var kcal: Int
 
     #hasMany(
-        name: "ingredients",
+        propertyName: "ingredients",
         mappedBy: \IngredientModel.recipeID
     )
 
     #hasMany(
-        name: "steps",
+        propertyName: "steps",
         mappedBy: \StepModel.recipeID
     )
 }
@@ -31,7 +31,7 @@ struct IngredientModel: SchemaProtocol, Codable, Sendable {
     var recipeID: RecipeID
 
     #hasOne(
-        name: "recipe",
+        propertyName: "recipe",
         type: RecipeModel.self
     )
 
@@ -50,12 +50,12 @@ struct StepModel: SchemaProtocol, Codable, Sendable {
     var photoID: PhotoID?
 
     #hasOne(
-        name: "recipe",
+        propertyName: "recipe",
         type: RecipeModel.self
     )
 
     #hasOne(
-        name: "photo",
+        propertyName: "photo",
         type: PhotoModel.self
     )
 }

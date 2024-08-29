@@ -13,12 +13,12 @@ public macro SQLColumnPropertyType(name: String) = #externalMacro(module: "SQLKi
 
 @freestanding(declaration, names: arbitrary)
 public macro hasMany<Schema: SchemaProtocol, T: Equatable>(
-    name: String,
+    propertyName: String,
     mappedBy column: KeyPath<Schema, T>
 ) = #externalMacro(module: "SQLKitTypingMacros", type: "hasMany")
 
 @freestanding(declaration, names: arbitrary)
 public macro hasOne<Model: Decodable & IDSchemaProtocol>(
-    name: String,
+    propertyName: String,
     type: Model.Type
 ) = #externalMacro(module: "SQLKitTypingMacros", type: "hasOne")
