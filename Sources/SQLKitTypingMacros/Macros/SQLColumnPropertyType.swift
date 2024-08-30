@@ -38,6 +38,9 @@ struct \(raw: arguments.name)<Value: Decodable>: PropertySQLExpression {
     init(_ expr: any SQLExpression, as type: Value.Type) {
         self.expr = expr
     }
+    init(_ queryString: SQLQueryString, as type: Value.Type) {
+        self.expr = queryString
+    }
     var expr: any SQLExpression
     struct Property: Decodable {
         var \(raw: arguments.name): Value
