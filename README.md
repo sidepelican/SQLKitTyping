@@ -10,11 +10,12 @@ Add slightly type safe interface for SQLKit.
 
 # Usage
 
-Define table schema
+Define table entity type and add `@Schema` macro.
+(Please also add `tableName` property. `@Schema` macro adds `SchemaProtocol` and `tableName` is required by it.)
 
 ```swift
 @Schema
-enum School: IDSchemaProtocol {
+struct School {
     static var tableName: String { "schools" }
 
     var id: SchoolID
@@ -22,31 +23,137 @@ enum School: IDSchemaProtocol {
 }
 ```
 
-Define entity type with Column Type.
+`@Schema` macro provides static properties about column expression including its type.
+
 
 ```swift
-struct SchoolAll: Identifiable, Codable {
-    var id: School.Id // macro generates column types
-    var name: School.Name
-}
+School.id // some TypedSQLColumn<School, SchoolID>
+School.name // some TypedSQLColumn<School, String>
 ```
 
 Query with type safe column
 
 ```swift
-let id = SchoolID(...)
-var rows = try await sql.select()
-    .column(School.all)
-    .from(School.self)
-    .where(School.id, .equal , id) // Only 'SchoolID' type is allowed
-    .all(decoding: StudentAll.self)
+func schools(schoolID: SchoolID, studentID: StudentID) async throws {
+    var rows = try await sql.select()
+        .column(School.all) // .all is also provided. This means '*'.
+        .from(School.self)
+        .where(School.id, .equal , schoolID) // Type safe!
+        // .where(School.id, .equal , studentID) // Compile error!
+        .all(decoding: School.self)
+    ...
+}
 ```
+
+## Query individual columns
+
+`sql.selectWithColumns` can query individual columns and take results rows with its column properties.
+
+```swift
+let row = try await sql.selectWithColumns {
+        School.id
+        School.name
+    }
+    .from(School.self)
+    .where(School.id, .equal, schoolID)
+    .first()
+if let row {
+    print(row.id) // SchoolID
+    print(row.name) // String
+}
+```
+
+Can be combined with other tables.
+
+```swift
+@Schema
+struct Lesson {
+    static var tableName: String { "lessons" }
+
+    var id: LessonID
+    var subject: String
+    var schoolID: SchoolID
+    var date: Date?
+}
+
+let rows = try await sql.selectWithColumns {
+    Lesson.all
+    School.name
+}
+    .from(Lesson.self)
+    .join(School.self, on: Lesson.schoolID, .equal, School.id)
+    .all()
+if let row = rows.first {
+    print(row.subject) // String
+    print(row.date) // Date?
+    print(row.name) // String
+}
+```
+
+### Fine utilities
+
+- `.nullable`
+  If JOIN makes the column type nullable.
+
+```swift
+let rows = try await sql.selectWithColumns {
+    Lesson.all
+    School.name.nullable
+}
+    .from(Lesson.self)
+    .join(School.self, method: SQLJoinMethod.left,
+          on: Lesson.schoolID, .equal, School.id)
+    .all()
+if let row = rows.first {
+    print(row.name) // String?
+}
+```
+
+- `groupN {}`
+  If it contains properties with the same name.
+
+```swift
+let rows = try await sql.selectWithColumns {
+        Lesson.all
+        group1 {
+            School.id
+            School.name
+        }
+    }
+    ...
+    .all()
+if let row = rows.first {
+    print(row.id) // LessonID
+    print(row.group1.id) // SchoolID
+}
+```
+
+- `#SQLColumnPropertyType(name:)`
+  Build custom column expression
+
+```swift
+enum Alias {
+    #SQLColumnPropertyType(name: "maxDate")
+}
+
+let row = try await sql.selectWithColumns {
+    Alias.maxDate("max(\(Lesson.date))", as: Date?.self)
+}
+    .from(Lesson.self)
+    .first()
+if let row {
+    print(row.maxDate) // Date?
+}
+```
+
+
+## Eagerload
 
 Eagerload children or slibling entities
 
 ```swift
 @Schema
-enum Student: IDSchemaProtocol {
+enum Student {
     static var tableName: String { "students" }
 
     var id: StudentID
