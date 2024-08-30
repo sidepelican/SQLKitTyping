@@ -15,7 +15,7 @@ Define table entity type and add `@Schema` macro.
 
 ```swift
 @Schema
-struct School {
+struct School: Sendable {
     static var tableName: String { "schools" }
 
     var id: SchoolID
@@ -67,7 +67,7 @@ Can be combined with other tables.
 
 ```swift
 @Schema
-struct Lesson {
+struct Lesson: Sendable {
     static var tableName: String { "lessons" }
 
     var id: LessonID
@@ -149,48 +149,35 @@ if let row {
 
 ## Eagerload
 
-Eagerload children or slibling entities
+`#hasMany` and `#hasOne` provides a method to eagerload children or slibling entities
 
 ```swift
 @Schema
-enum Student {
-    static var tableName: String { "students" }
+struct School: Sendable {
+    static var tableName: String { "schools" }
 
-    var id: StudentID
+    var id: SchoolID
     var name: String
-    var age: Int?
+
+    #hasMany(propertyName: "lessons", mappedBy: \Lesson.schoolID)
 }
 
 @Schema
-enum SchoolStudentRelation: RelationSchemaProtocol {
-    static var tableName: String { "schools_students" }
+struct Lesson: Sendable {
+    static var tableName: String { "lessons" }
 
+    var id: LessonID
+    var subject: String
     var schoolID: SchoolID
-    var studentID: StudentID
-
-    static var relation: PivotJoinRelation<Self, SchoolID, StudentID> {
-        .init(from: schoolID, to: studentID)
-    }
+    var date: Date?
 }
 
-struct SchoolWithStudents: Decodable, Identifiable {
-    var id: School.Id
-    var name: School.Name
-    var students: [StudentAll] = []
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case name
-    }
-}
-
-var rows = try await sql.select()
-    .column(School.all)
+let rows = try await sql.selectWithColumn(School.all)
     .from(School.self)
-    .all(decoding: SchoolWithStudents.self)
-try await sql.eagerLoadAllColumns(into: &rows, keyPath: \.students,
-                                  targetTable: Student.self,
-                                  relationTable: SchoolStudentRelation.self)
-XCTAssertEqual(Set(rows.map(\.students.count)), [4, 3, 0])
+    .all()
+    .eagerLoadMany(sql: sql, for: \.id, using: School.lessons.self)
 
+if let row = rows.first, if let lesson = rows.lessons.first {
+    print(lesson.date) // Date?
+}
 ```
