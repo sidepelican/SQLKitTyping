@@ -10,8 +10,8 @@ Add slightly type safe interface for SQLKit.
 
 # Usage
 
-Define table entity type and add `@Schema` macro.
-(Please also add `tableName` property. `@Schema` macro adds `SchemaProtocol` and `tableName` is required by it.)
+Define a table entity type and add the `@Schema` macro.
+(Ensure to also include the `tableName` property. The `@Schema` macro adds the `SchemaProtocol` which requires `tableName`.)
 
 ```swift
 @Schema
@@ -23,15 +23,14 @@ struct School: Sendable {
 }
 ```
 
-`@Schema` macro provides static properties about column expression including its type.
-
+The `@Schema` macro provides static properties for column expressions, including their types.
 
 ```swift
 School.id // some TypedSQLColumn<School, SchoolID>
 School.name // some TypedSQLColumn<School, String>
 ```
 
-Query with type safe column
+Query with type safe columns.
 
 ```swift
 func schools(schoolID: SchoolID, studentID: StudentID) async throws {
@@ -45,9 +44,9 @@ func schools(schoolID: SchoolID, studentID: StudentID) async throws {
 }
 ```
 
-## Query individual columns
+## Query Individual Columns
 
-`sql.selectWithColumns` can query individual columns and take results rows with its column properties.
+`sql.selectWithColumns` can query individual columns and return results in rows with the specified column properties.
 
 ```swift
 let row = try await sql.selectWithColumns {
@@ -63,7 +62,7 @@ if let row {
 }
 ```
 
-Can be combined with other tables.
+Combine with other tables.
 
 ```swift
 @Schema
@@ -90,10 +89,10 @@ if let row = rows.first {
 }
 ```
 
-### Fine utilities
+### Additional Utilities
 
 - `.nullable`
-  If JOIN makes the column type nullable.
+   Use when a JOIN operation makes the column type nullable.
 
 ```swift
 let rows = try await sql.selectWithColumns {
@@ -110,7 +109,7 @@ if let row = rows.first {
 ```
 
 - `groupN {}`
-  If it contains properties with the same name.
+  Use if there are properties with the same name.
 
 ```swift
 let rows = try await sql.selectWithColumns {
@@ -129,7 +128,7 @@ if let row = rows.first {
 ```
 
 - `#SQLColumnPropertyType(name:)`
-  Build custom column expression
+  Build custom column expressions.
 
 ```swift
 enum Alias {
@@ -149,7 +148,7 @@ if let row {
 
 ## Eagerload
 
-`#hasMany` and `#hasOne` provides a method to eagerload children or slibling entities
+`#hasMany` and `#hasOne` provides methods to eagerload child or slibling entities
 
 ```swift
 @Schema
