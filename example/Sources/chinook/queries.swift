@@ -97,8 +97,8 @@ enum Custom {
 
 func example7(sql: some SQLDatabase) async throws {
     let rows = try await sql.selectWithColumns {
-        Custom.Manager(SQLQueryString("m.firstname || ' ' || m.lastname"), as: String.self)
-        Custom.DirectReport(SQLQueryString("e.firstname || ' ' || e.lastname"), as: String.self)
+        Custom.Manager("m.firstname || ' ' || m.lastname", as: String.self)
+        Custom.DirectReport("e.firstname || ' ' || e.lastname", as: String.self)
     }
         .from(EmployeeTable.tableName, as: "e")
         .join(SQLAlias(EmployeeTable.tableName, as: "m"), method: SQLJoinMethod.inner,
