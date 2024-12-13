@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 5.10
 
 import PackageDescription
 import CompilerPluginSupport
@@ -20,13 +20,13 @@ func swiftSettings(strictConcurrency: Bool = true, existentialAny: Bool = true) 
 
 let package = Package(
     name: "SQLKitTyping",
-    platforms: [.macOS(.v12)],
+    platforms: [.macOS(.v14)],
     products: [
         .library(name: "SQLKitTyping", targets: ["SQLKitTyping"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/sql-kit.git", from: "3.30.0"),
-        .package(url: "https://github.com/apple/swift-syntax.git", from: "510.0.2"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", "600.0.0"..<"999.0.0"),
     ],
     targets: [
         .macro(

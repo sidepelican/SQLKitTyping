@@ -125,5 +125,5 @@ fileprivate struct S {
 
 enum Foo {
     @EraseProperty
-    let enumProperty: Int
+    var enumProperty: Int
 }
