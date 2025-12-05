@@ -1,19 +1,12 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.0
 
 import PackageDescription
 import CompilerPluginSupport
 
-func swiftSettings(strictConcurrency: Bool = true, existentialAny: Bool = true) -> [SwiftSetting] {
-    var settings: [SwiftSetting] = [
-        .enableUpcomingFeature("ForwardTrailingClosures"),
-        .enableUpcomingFeature("ConciseMagicFile"),
-        .enableUpcomingFeature("BareSlashRegexLiterals"),
-    ]
+func swiftSettings(existentialAny: Bool = true) -> [SwiftSetting] {
+    var settings: [SwiftSetting] = []
     if existentialAny {
         settings.append(.enableUpcomingFeature("ExistentialAny"))
-    }
-    if strictConcurrency {
-        settings.append(.enableExperimentalFeature("StrictConcurrency"))
     }
     return settings
 }
@@ -25,8 +18,8 @@ let package = Package(
         .library(name: "SQLKitTyping", targets: ["SQLKitTyping"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/sql-kit.git", from: "3.30.0"),
-        .package(url: "https://github.com/swiftlang/swift-syntax.git", "600.0.0"..<"999.0.0"),
+        .package(url: "https://github.com/vapor/sql-kit.git", from: "3.33.2"),
+        .package(url: "https://github.com/swiftlang/swift-syntax.git", "602.0.0"..<"999.0.0"),
     ],
     targets: [
         .macro(

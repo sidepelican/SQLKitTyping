@@ -32,7 +32,12 @@ extension TypeSyntax {
 
                 if let identifier = next.as(IdentifierTypeSyntax.self) {
                     if let genericArguments = identifier.genericArgumentClause {
-                        stack.append(contentsOf: genericArguments.arguments.map(\.argument))
+                        stack.append(contentsOf: genericArguments.arguments.compactMap {
+                            if case .type(let type) = $0.argument {
+                                return type
+                            }
+                            return nil
+                        })
                     }
                     return identifier.name.text
                 }
